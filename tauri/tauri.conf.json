@@ -1,0 +1,28 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Starlight Voice",
+  "version": "0.1.0",
+  "identifier": "ai.starlight.voice",
+  "app": {
+    "windows": [],
+    "trayIcon": {
+      "iconPath": "icons/tray-idle.png",
+      "iconAsTemplate": false
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["msi", "nsis"],
+    "category": "Utility",
+    "shortDescription": "Jarvis-grade personal voice operator",
+    "longDescription": "Open-source voice operator: PTT hotkey + Pipecat pipeline + MCP tools. Sub-800ms hot path.",
+    "icon": ["icons/icon.ico", "icons/tray-idle.png"],
+    "windows": {
+      "webviewInstallMode": { "type": "skip" }
+    }
+  },
+  "plugins": {
+    "global-shortcut": {},
+    "autostart": {}
+  }
+}
