@@ -1,0 +1,28 @@
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.uv/
+dist/
+*.egg-info/
+
+# Env / secrets
+.env
+.env.local
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Tauri
+/tauri/gen/
