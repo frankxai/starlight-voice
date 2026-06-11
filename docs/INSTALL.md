@@ -87,13 +87,14 @@ If a visible console opens, inspect `tauri/src/main.rs` and `tauri/tauri.conf.js
 
 ## Environment
 
-The live voice providers are not implemented yet. When provider wiring starts, create `.env` from the example:
+The live voice providers are not implemented yet. When provider wiring starts, use the local secrets helper:
 
 ```powershell
-Copy-Item .env.example .env
+pwsh -File scripts/set-secrets.ps1
 ```
 
-Then fill only the provider keys you actually use. Never commit `.env`.
+It writes `.env.local`, which is gitignored. Fill only the provider keys you actually use.
+Do not paste keys into chat. See `docs/SECRETS.md` for the local `.env.local` / LiteLLM / Infisical strategy.
 
 ## Current Verification
 

@@ -82,13 +82,14 @@ python -m starlight_voice browser "open the Pipecat docs"
 
 ## Configuration
 
-Copy `.env.example` to `.env` only when the sidecar work begins:
+Use the local secrets helper when provider wiring begins:
 
 ```powershell
-Copy-Item .env.example .env
+pwsh -File scripts/set-secrets.ps1
 ```
 
-Do not commit `.env`.
+It writes `.env.local`, which is gitignored. Do not paste provider keys into chat.
+See `docs/SECRETS.md` for the local `.env.local` / LiteLLM / Infisical strategy.
 
 ## Install Guide
 
@@ -100,6 +101,7 @@ Useful docs:
 - `docs/CAPABILITIES.md` — what is real now versus planned
 - `docs/FLOWS.md` — the target Jarvis-grade flows
 - `docs/ARCHITECTURE.md` — engineering architecture
+- `docs/SECRETS.md` — provider key setup and secret strategy
 
 ## Roadmap
 
