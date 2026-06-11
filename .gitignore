@@ -31,3 +31,4 @@ desktop.ini
 # Local runtime
 .starlight-voice/
 sidecar/.starlight-voice/
+dashboard/ratings.jsonl

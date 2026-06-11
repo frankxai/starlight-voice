@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Starlight Voice Options</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Starlight Voice</p>
+          <h1>Choose the voice-agent build path</h1>
+          <p class="lede">
+            Four viable setups. One daily-driver target: beautiful voice, fast control,
+            safe browser use, and Codex-grade execution on this machine.
+          </p>
+        </div>
+        <div class="system-card">
+          <span class="pulse"></span>
+          <div>
+            <strong>Machine basis</strong>
+            <p>Rust/Tauri, Python, Claude Code, Codex, OpenCode, browser-use, Anthropic/OpenAI SDKs, sounddevice.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid" aria-label="Setup options">
+        <article class="option recommended" data-option="hybrid">
+          <div class="topline">
+            <span class="badge">Recommended</span>
+            <span class="score">Best combo</span>
+          </div>
+          <div class="visual hybrid-viz" aria-hidden="true">
+            <span>PTT</span><span>Pipecat</span><span>Codex</span><span>Browser</span>
+          </div>
+          <h2>Hybrid Starlight</h2>
+          <p>Local Tauri tray + Pipecat voice pipeline + provider lanes + browser-use + Codex/Claude execution.</p>
+          <ul>
+            <li>Best control over latency, privacy, and tools.</li>
+            <li>Lets ElevenLabs or OpenAI be swappable provider lanes.</li>
+            <li>Most engineering work, but cleanest long-term architecture.</li>
+          </ul>
+          <button data-choice="hybrid">Rate Hybrid</button>
+        </article>
+
+        <article class="option" data-option="elevenlabs">
+          <div class="topline">
+            <span class="badge">Voice first</span>
+            <span class="score">Fastest beauty</span>
+          </div>
+          <div class="visual eleven-viz" aria-hidden="true">
+            <span class="wave w1"></span><span class="wave w2"></span><span class="wave w3"></span>
+          </div>
+          <h2>ElevenLabs Agent</h2>
+          <p>Lean into ElevenAgents / WebRTC or WebSocket for expressive, polished voice conversations.</p>
+          <ul>
+            <li>Strong voice aesthetics and conversational agent tooling.</li>
+            <li>Good for a beautiful front-facing operator fast.</li>
+            <li>Needs careful external tool and browser execution boundary.</li>
+          </ul>
+          <button data-choice="elevenlabs">Rate ElevenLabs</button>
+        </article>
+
+        <article class="option" data-option="openai">
+          <div class="topline">
+            <span class="badge">Realtime</span>
+            <span class="score">Unified agent</span>
+          </div>
+          <div class="visual openai-viz" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <h2>OpenAI Realtime</h2>
+          <p>Use OpenAI Voice Agents / Realtime with WebRTC for browser/mobile and server-side tools.</p>
+          <ul>
+            <li>Best if speech-to-speech and tool calling should share one provider surface.</li>
+            <li>WebRTC is the right browser/mobile transport.</li>
+            <li>Keep tools and business logic server-side via sideband controls.</li>
+          </ul>
+          <button data-choice="openai">Rate OpenAI</button>
+        </article>
+
+        <article class="option" data-option="oss">
+          <div class="topline">
+            <span class="badge">OSS lab</span>
+            <span class="score">Most sovereign</span>
+          </div>
+          <div class="visual oss-viz" aria-hidden="true">
+            <span>Pipecat</span><span>browser-use</span><span>Local IO</span>
+          </div>
+          <h2>OSS Experiment Stack</h2>
+          <p>Pipecat, browser-use, local audio IO, and local MCP tools as the primary system.</p>
+          <ul>
+            <li>Maximum control and composability.</li>
+            <li>Great for learning and durable architecture.</li>
+            <li>Provider polish depends on the selected STT/TTS/LLM lanes.</li>
+          </ul>
+          <button data-choice="oss">Rate OSS</button>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div>
+          <h2>Rate the path</h2>
+          <p>Select an option, score it, then save. Ratings are written locally to <code>dashboard/ratings.jsonl</code>.</p>
+        </div>
+        <form id="ratingForm">
+          <label>
+            Option
+            <select name="option" id="option">
+              <option value="hybrid">Hybrid Starlight</option>
+              <option value="elevenlabs">ElevenLabs Agent</option>
+              <option value="openai">OpenAI Realtime</option>
+              <option value="oss">OSS Experiment Stack</option>
+            </select>
+          </label>
+          <label>
+            Rating
+            <input name="rating" id="rating" type="range" min="1" max="10" value="8" />
+            <output id="ratingOut">8</output>
+          </label>
+          <label>
+            Notes
+            <textarea name="notes" id="notes" rows="4" placeholder="What feels most right? What worries you?"></textarea>
+          </label>
+          <button type="submit">Save Rating</button>
+          <p id="status" class="status" role="status"></p>
+        </form>
+      </section>
+
+      <section class="sources">
+        <h2>Grounding</h2>
+        <a href="https://developers.openai.com/api/docs/guides/voice-agents">OpenAI Voice Agents</a>
+        <a href="https://developers.openai.com/api/docs/guides/realtime-webrtc">OpenAI Realtime WebRTC</a>
+        <a href="https://elevenlabs.io/docs/eleven-agents/overview">ElevenAgents</a>
+        <a href="https://elevenlabs.io/docs/eleven-agents/libraries/react">ElevenLabs React/WebRTC</a>
+        <a href="https://docs.pipecat.ai/overview/introduction">Pipecat</a>
+        <a href="https://github.com/browser-use/browser-use">browser-use</a>
+      </section>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>
