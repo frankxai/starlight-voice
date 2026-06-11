@@ -7,5 +7,7 @@ def test_doctor_reports_readiness_shape() -> None:
     assert "platform" in report
     assert "tools" in report
     assert "optional_packages" in report
+    assert "secrets" in report
     assert "readiness" in report
     assert isinstance(report["readiness"]["build_shell"], bool)
+    assert isinstance(report["secrets"]["OPENAI_API_KEY"], bool)

@@ -5,12 +5,15 @@ import json
 import sys
 
 from .browser import BrowserAutomationAdapter
+from .config import load_local_env
 from .environment import EnvironmentDoctor
 from .ipc import JsonLineIpcServer
 from .pipeline import AgentPipeline
 
 
 def main(argv: list[str] | None = None) -> int:
+    load_local_env()
+
     parser = argparse.ArgumentParser(prog="starlight-voice-sidecar")
     sub = parser.add_subparsers(dest="command", required=True)
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 import platform
 import shutil
 import subprocess
@@ -63,6 +64,21 @@ class EnvironmentDoctor:
         PackageStatus("sounddevice", "sounddevice", False, "Local microphone/speaker IO."),
     ]
 
+    SECRET_KEYS = [
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "ELEVENLABS_API_KEY",
+        "ELEVENLABS_AGENT_ID",
+        "DEEPGRAM_API_KEY",
+        "CARTESIA_API_KEY",
+        "GROQ_API_KEY",
+        "CEREBRAS_API_KEY",
+        "LITELLM_BASE_URL",
+        "LITELLM_API_KEY",
+        "INFISICAL_PROJECT_ID",
+        "INFISICAL_ENV",
+    ]
+
     def report(self) -> dict[str, object]:
         tools = [self._tool_status(name, args).to_dict() for name, args in self.CLI_TOOLS.items()]
         packages = [self._package_status(pkg).to_dict() for pkg in self.OPTIONAL_PACKAGES]
@@ -76,6 +92,7 @@ class EnvironmentDoctor:
             },
             "tools": tools,
             "optional_packages": packages,
+            "secrets": self._secret_status(),
             "readiness": {
                 "build_shell": not missing_required,
                 "text_sidecar": True,
@@ -118,3 +135,6 @@ class EnvironmentDoctor:
     @staticmethod
     def _package_present(import_name: str) -> bool:
         return importlib.util.find_spec(import_name) is not None
+
+    def _secret_status(self) -> dict[str, bool]:
+        return {key: bool(os.environ.get(key)) for key in self.SECRET_KEYS}
