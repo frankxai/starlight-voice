@@ -11,10 +11,10 @@
       <section class="hero">
         <div>
           <p class="eyebrow">Starlight Voice</p>
-          <h1>Choose the voice-agent build path</h1>
+          <h1>Voice cockpit for the next Starlight build</h1>
           <p class="lede">
-            Four viable setups. One daily-driver target: beautiful voice, fast control,
-            safe browser use, and Codex-grade execution on this machine.
+            Speak a cinematic operator briefing, compare provider lanes, test predefined
+            workflows, and save the rating that should steer the next build sprint.
           </p>
         </div>
         <div class="system-card">
@@ -23,6 +23,86 @@
             <strong>Machine basis</strong>
             <p>Rust/Tauri, Python, Claude Code, Codex, OpenCode, browser-use, Anthropic/OpenAI SDKs, sounddevice.</p>
           </div>
+        </div>
+      </section>
+
+      <section class="cockpit" aria-label="Voice cockpit">
+        <div class="briefing-panel">
+          <div class="section-head">
+            <p class="eyebrow">Live demo</p>
+            <h2>Operator briefing</h2>
+          </div>
+          <p id="briefingText" class="briefing-copy">
+            Hello sir. This is the update about Arcanea Business. The system is ready to compare voice providers,
+            route browser execution, and lock the next Starlight Voice sprint around the strongest workflow.
+          </p>
+          <div class="briefing-actions">
+            <button type="button" data-briefing="arcanea">Arcanea Business</button>
+            <button type="button" data-briefing="sis">Starlight Systems</button>
+            <button type="button" data-briefing="ops">Builder Ops</button>
+          </div>
+          <div class="voice-controls">
+            <label>
+              Browser voice
+              <select id="voiceSelect">
+                <option value="">System default</option>
+              </select>
+            </label>
+            <label>
+              Cool factor
+              <input id="coolFactor" type="range" min="1" max="10" value="8" />
+              <output id="coolOut">8</output>
+            </label>
+            <button type="button" id="speakBriefing">Speak briefing</button>
+          </div>
+          <p id="speechStatus" class="status" role="status"></p>
+        </div>
+
+        <div class="action-plan">
+          <div class="section-head">
+            <p class="eyebrow">Recommendation</p>
+            <h2>Action plan</h2>
+          </div>
+          <ol>
+            <li>Keep the local Tauri + sidecar cockpit as the source of truth.</li>
+            <li>Wire OpenAI Realtime as the first low-latency browser voice lane.</li>
+            <li>Add ElevenLabs as the premium voice-beauty lane for production personality.</li>
+            <li>Use browser-use only behind explicit workflow approval and audit logs.</li>
+            <li>Install Pipecat next for provider-neutral voice orchestration.</li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="workflow-section" aria-label="Predefined workflows">
+        <div class="section-head">
+          <p class="eyebrow">Predefined workflows</p>
+          <h2>What Starlight Voice should run first</h2>
+        </div>
+        <div class="workflow-grid">
+          <article class="workflow" data-workflow="arcanea-business">
+            <span class="tag">Business</span>
+            <h3>Arcanea Business Update</h3>
+            <p>Pull status, summarize revenue/product momentum, and speak a sharp executive briefing.</p>
+            <button type="button" data-run-workflow="arcanea-business">Preview</button>
+          </article>
+          <article class="workflow" data-workflow="sis-ops">
+            <span class="tag">Systems</span>
+            <h3>Starlight Intelligence Check</h3>
+            <p>Review repos, memory, agents, install state, and next build priorities across SIS.</p>
+            <button type="button" data-run-workflow="sis-ops">Preview</button>
+          </article>
+          <article class="workflow" data-workflow="browser-builder">
+            <span class="tag">Execution</span>
+            <h3>Browser Builder Run</h3>
+            <p>Open a target page, observe UI, take action with approval, then report verified results.</p>
+            <button type="button" data-run-workflow="browser-builder">Preview</button>
+          </article>
+          <article class="workflow" data-workflow="voice-lab">
+            <span class="tag">Voice</span>
+            <h3>Voice Provider Bakeoff</h3>
+            <p>Compare ElevenLabs, OpenAI Realtime, and OSS lanes against beauty, latency, control, and cost.</p>
+            <button type="button" data-run-workflow="voice-lab">Preview</button>
+          </article>
         </div>
       </section>
 

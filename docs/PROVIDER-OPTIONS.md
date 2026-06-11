@@ -13,6 +13,36 @@ Use the **Hybrid Starlight** path:
 - browser-use is the browser automation lane.
 - Codex, Claude Code, OpenCode, and Gemini are coding-agent lanes through `arco`.
 
+## Dashboard Cockpit
+
+Run:
+
+```powershell
+pwsh -File scripts/open-dashboard.ps1
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8765
+```
+
+The cockpit now supports:
+
+- browser-native speech synthesis for immediate local testing
+- preset spoken briefings for Arcanea Business, Starlight Intelligence Systems, and Builder Ops
+- predefined workflow previews for business updates, SIS checks, browser execution, and voice provider bakeoffs
+- provider-path ratings saved locally to `dashboard/ratings.jsonl`
+
+This is not the final voice runtime. It is the decision and testing surface that lets Frank feel the operator flow before wiring paid provider APIs.
+
+## Recommended First Workflows
+
+1. **Arcanea Business Update** — gather business state, summarize momentum, identify blockers, speak next action.
+2. **Starlight Intelligence Check** — inspect repo health, memory, agents, install state, and build priorities.
+3. **Browser Builder Run** — open a page, observe, act with approval, verify, and report evidence.
+4. **Voice Provider Bakeoff** — compare ElevenLabs, OpenAI Realtime, and OSS lanes by beauty, latency, control, privacy, and cost.
+
 ## Option A: ElevenLabs Agent
 
 Use when the highest priority is beautiful, expressive voice and a fast polished conversation surface.
