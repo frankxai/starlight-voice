@@ -1,5 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod sidecar;
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
@@ -15,6 +17,10 @@ fn main() {
                 )
                 .init();
             tracing::info!("starlight-voice tauri shell starting");
+            match sidecar::health_json() {
+                Ok(health) => tracing::info!(sidecar.health = %health, "sidecar health check passed"),
+                Err(err) => tracing::warn!(sidecar.error = %err, "sidecar health check unavailable"),
+            }
             Ok(())
         })
         .run(tauri::generate_context!())

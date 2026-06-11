@@ -1,0 +1,29 @@
+[project]
+name = "starlight-voice-sidecar"
+version = "0.1.0"
+description = "Python sidecar for Starlight Voice"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+voice = [
+  "pipecat-ai>=0.0.50",
+  "sounddevice>=0.5.0",
+]
+providers = [
+  "anthropic>=0.65.0",
+  "openai>=1.100.0",
+]
+browser = [
+  "browser-use[core]>=0.13.0",
+]
+dev = [
+  "pytest>=8.0.0",
+]
+
+[project.scripts]
+starlight-voice-sidecar = "starlight_voice.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

@@ -4,9 +4,9 @@ This guide is for installing the current repo on a second Windows laptop.
 
 ## Reality Check
 
-As of this repo state, Starlight Voice is a buildable Tauri tray scaffold plus specs and plans. It is not yet a complete voice assistant installer.
+As of this repo state, Starlight Voice is a buildable Tauri tray scaffold plus a Python sidecar scaffold. It is not yet a complete voice assistant installer.
 
-You can install and verify the tray shell today. The full voice loop is pending the Python sidecar tasks in `docs/PLAN.md`.
+You can install and verify the tray shell, sidecar health, text-mode routing, and browser-task dry-run today. The full voice loop is pending the provider and microphone tasks in `docs/PLAN.md`.
 
 ## Prerequisites
 
@@ -36,6 +36,24 @@ Use a different directory if the Windows username is not `frank`.
 cargo build --release -p starlight-voice-tauri
 ```
 
+## Test the Sidecar
+
+```powershell
+python -m pip install pytest
+$env:PYTHONPATH = "sidecar/src"
+python -m pytest sidecar/tests
+python -m starlight_voice health
+python -m starlight_voice say "think hard about the architecture"
+python -m starlight_voice browser "open browser-use docs"
+```
+
+Expected:
+
+- tests pass
+- health reports `status: ok`
+- deliberation phrases route to `tier25-deliberation`
+- browser commands route in dry-run mode without opening a browser
+
 The built binary should appear at:
 
 ```text
@@ -59,7 +77,7 @@ If a visible console opens, inspect `tauri/src/main.rs` and `tauri/tauri.conf.js
 
 ## Environment
 
-The voice sidecar is not implemented yet. When it lands, create `.env` from the example:
+The live voice providers are not implemented yet. When provider wiring starts, create `.env` from the example:
 
 ```powershell
 Copy-Item .env.example .env
@@ -71,6 +89,9 @@ Then fill only the provider keys you actually use. Never commit `.env`.
 
 ```powershell
 cargo build --release -p starlight-voice-tauri
+$env:PYTHONPATH = "sidecar/src"
+python -m pytest sidecar/tests
+python benchmarks/run.py --probe router --n 25
 ```
 
 Manual check:

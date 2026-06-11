@@ -1,0 +1,15 @@
+[hot_path]
+mic_close_to_first_audio_p50_ms = 800
+router_decision_p50_ms = 10
+browser_dry_run_p50_ms = 50
+cli_warm_dispatch_p50_ms = 100
+cli_cold_dispatch_p50_ms = 300
+
+[startup]
+visible_windows = 0
+scheduled_tasks = 1
+
+[voice]
+turn_detection_p50_ms = 90
+stt_partial_p50_ms = 300
+tts_time_to_first_audio_p50_ms = 150

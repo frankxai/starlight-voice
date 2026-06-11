@@ -1,0 +1,10 @@
+[project]
+name = "starlight-voice-workspace"
+version = "0.1.0"
+description = "Workspace helper for Starlight Voice"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.pytest.ini_options]
+testpaths = ["sidecar/tests"]
+pythonpath = ["sidecar/src"]
