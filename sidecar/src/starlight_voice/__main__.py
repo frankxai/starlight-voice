@@ -5,6 +5,7 @@ import json
 import sys
 
 from .browser import BrowserAutomationAdapter
+from .environment import EnvironmentDoctor
 from .ipc import JsonLineIpcServer
 from .pipeline import AgentPipeline
 
@@ -14,6 +15,7 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("health", help="Print sidecar health as JSON")
+    sub.add_parser("doctor", help="Inspect local machine readiness as JSON")
 
     say = sub.add_parser("say", help="Run the text-mode cognition path")
     say.add_argument("text", nargs="+")
@@ -29,6 +31,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "health":
         print(json.dumps(pipeline.health(), separators=(",", ":")))
+        return 0
+
+    if args.command == "doctor":
+        print(json.dumps(EnvironmentDoctor().report(), separators=(",", ":")))
         return 0
 
     if args.command == "say":

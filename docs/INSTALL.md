@@ -43,6 +43,7 @@ python -m pip install pytest
 $env:PYTHONPATH = "sidecar/src"
 python -m pytest sidecar/tests
 python -m starlight_voice health
+python -m starlight_voice doctor
 python -m starlight_voice say "think hard about the architecture"
 python -m starlight_voice browser "open browser-use docs"
 ```
@@ -51,8 +52,17 @@ Expected:
 
 - tests pass
 - health reports `status: ok`
+- doctor reports installed tools and readiness lanes
 - deliberation phrases route to `tier25-deliberation`
 - browser commands route in dry-run mode without opening a browser
+
+Or use the repo scripts:
+
+```powershell
+pwsh -File scripts/doctor.ps1
+pwsh -File scripts/smoke-sidecar.ps1
+pwsh -File scripts/test-local.ps1
+```
 
 The built binary should appear at:
 

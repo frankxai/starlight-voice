@@ -27,6 +27,7 @@ class AgentPipeline:
                 "voice_loop": False,
                 "browser_dry_run": True,
                 "browser_live": False,
+                "doctor": True,
                 "mcp": False,
             },
         }

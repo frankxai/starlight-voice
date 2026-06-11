@@ -38,5 +38,18 @@ Every major feature needs:
 2. JSON-lines IPC smoke from Rust to Python.
 3. Tray menu: Pause, Health, Quit.
 4. PTT hotkey events over IPC.
-5. Pipecat local text-to-audio harness.
+5. Install/wire Pipecat local text-to-audio harness.
 6. Browser-use live sandbox with screenshot receipt.
+
+## Current Machine Truth
+
+Frank's laptop already has the right base for the best local build:
+
+- Rust/Cargo + Tauri shell build path
+- Python 3.13 + uv
+- browser-use importable
+- Anthropic and OpenAI SDKs importable
+- sounddevice importable
+- Claude Code, Codex, OpenCode, and `arco` installed
+
+The missing pieces are implementation, not concept: Pipecat, PTT IPC, live browser policy, MCP client, and installer discipline.

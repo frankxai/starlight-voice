@@ -55,6 +55,7 @@ voice/text request
 - Tauri tray shell builds.
 - Python sidecar package exists.
 - JSON-lines IPC handles `health`, `utterance`, and `browser.task`.
+- Machine doctor reports installed tools, optional package readiness, and missing agent lanes.
 - Browser-use adapter supports dry-run routing and explicit live gating.
 - Router classifies control, fast chat, deliberation, CLI-agent, and browser tasks.
 - CI builds Rust and tests Python.
@@ -70,6 +71,14 @@ voice/text request
 - Installer with one hidden scheduled task.
 - Legacy scheduled-task migration scripts.
 - Latency gate for hot-path P50.
+
+## Local Management Commands
+
+```powershell
+pwsh -File scripts/doctor.ps1
+pwsh -File scripts/smoke-sidecar.ps1
+pwsh -File scripts/test-local.ps1
+```
 
 ## Performance Targets
 
