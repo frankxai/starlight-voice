@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 
 from . import adapters
@@ -33,6 +34,14 @@ def main(argv: list[str] | None = None) -> int:
     voice.add_argument("--selftest", action="store_true", help="Construct the cloud graph headlessly (no mic) and report")
     voice.add_argument("--run", action="store_true", help="Open mic/speakers and run the live loop (needs the voice extra)")
 
+    disp = sub.add_parser("dispatch", help="Route a coding task to the fleet (dry-run packet preview)")
+    disp.add_argument("task", nargs="+")
+    disp.add_argument("--live", action="store_true", help="Actually spawn the chosen CLI for Tier-A tasks")
+
+    brief = sub.add_parser("brief", help="Scan repos -> ranked morning brief JSON + spoken headline")
+    brief.add_argument("paths", nargs="*", help="Repo paths to scan (default: STARLIGHT_BRIEF_REPOS or this repo)")
+    brief.add_argument("--speak", action="store_true", help="Synthesize the spoken summary via OpenRouter")
+
     args = parser.parse_args(argv)
     pipeline = AgentPipeline()
 
@@ -58,6 +67,31 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "serve":
         server = JsonLineIpcServer(pipeline=AgentPipeline())
         return server.serve(sys.stdin, sys.stdout)
+
+    if args.command == "dispatch":
+        from .cognition.dispatch import Dispatcher
+
+        outcome = Dispatcher(live=args.live).dispatch(" ".join(args.task))
+        print(json.dumps(outcome, separators=(",", ":")))
+        return 0
+
+    if args.command == "brief":
+        from datetime import date as _date
+        from pathlib import Path
+
+        from .config import repo_root
+        from .proactive.analyzer import build_brief, synthesize_spoken, write_brief
+
+        if args.paths:
+            paths = [Path(p) for p in args.paths]
+        else:
+            env_repos = os.environ.get("STARLIGHT_BRIEF_REPOS", "")
+            paths = [Path(p) for p in env_repos.replace(";", ",").split(",") if p.strip()] or [repo_root()]
+        brief = build_brief(paths, _date.today().isoformat())
+        out = write_brief(brief, repo_root() / "memory" / "voice")
+        spoken = synthesize_spoken(brief) if args.speak else brief.headline()
+        print(json.dumps({"brief_file": str(out), "count": len(brief.items), "spoken": spoken}, separators=(",", ":")))
+        return 0
 
     if args.command == "voice":
         if args.run:

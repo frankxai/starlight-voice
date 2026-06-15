@@ -32,3 +32,6 @@ desktop.ini
 .starlight-voice/
 sidecar/.starlight-voice/
 dashboard/ratings.jsonl
+
+# generated morning briefs
+memory/voice/

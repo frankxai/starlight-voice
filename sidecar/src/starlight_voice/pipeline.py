@@ -50,7 +50,13 @@ class AgentPipeline:
         if tier == RouteTier.BROWSER:
             return {"type": "browser", "text": "Browser task routed. Use browser.task IPC to execute or dry-run."}
         if tier == RouteTier.CLI_AGENT:
-            return {"type": "handoff", "text": "CLI-agent task routed. Codex/Claude/OpenCode pool wiring is next."}
+            # Build a real handoff-packet (dry-run) so the response carries routing + approval tier.
+            # Lazy import keeps `pipeline` import-safe where the dispatch deps (ulid) are absent.
+            from .cognition.dispatch import Dispatcher
+
+            outcome = Dispatcher(live=False).dispatch(text)
+            packet = outcome["packet"]
+            return {"type": "handoff", "text": packet["spoken_update_for_frank"], "dispatch": outcome}
         if tier == RouteTier.DELIBERATION:
             return {"type": "deliberation", "text": "I will take the slower reasoning lane for this."}
         return {"type": "voice", "text": "Starlight Voice text path is alive."}
