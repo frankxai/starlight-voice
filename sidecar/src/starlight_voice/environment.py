@@ -65,6 +65,7 @@ class EnvironmentDoctor:
     ]
 
     SECRET_KEYS = [
+        "OPENROUTER_API_KEY",
         "OPENAI_API_KEY",
         "ANTHROPIC_API_KEY",
         "ELEVENLABS_API_KEY",

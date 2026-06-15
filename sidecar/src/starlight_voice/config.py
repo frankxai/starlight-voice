@@ -48,29 +48,31 @@ class Settings:
     Selection-only: this schema names WHICH engine/model/provider each stage uses.
     The engine implementations live in `adapters/`. The router (`cognition/router.py`)
     classifies tier and must NOT read this — provider-pin-by-tier is owned by the LLM
-    adapter, TTS engine selection by the TTS adapter. Defaults reflect the v2.1
-    validated stack (faster-whisper local STT, Kokoro local TTS, OpenRouter LLM with
-    the FAST tier pinned to a sub-200ms-TTFT provider).
+    adapter, TTS engine selection by the TTS adapter.
 
-    Built fresh per the 2026-06-15 research synthesis: `config.py` previously held only
-    `load_local_env()`, so there was nothing to select against.
+    Defaults are CLOUD-FIRST (decided 2026-06-15): on Frank's GTX 1650 (4GB, no Tensor
+    cores) cloud STT/TTS is faster, frees the GPU for parallel work, and needs no heavy
+    CUDA install. The runnable-today path uses only LIVE keys — Groq Whisper (STT),
+    OpenRouter (LLM, FAST tier pinned to Cerebras THROUGH OpenRouter), ElevenLabs (TTS).
+    Local engines (faster-whisper / Kokoro) remain selectable as an offline/private tier
+    via env vars; install them with the `voice-local` extra.
     """
 
-    # STT
-    stt_engine: str = "faster-whisper"          # faster-whisper | groq-openrouter | deepgram
-    stt_model: str = "large-v3-turbo"
-    stt_compute_type: str = "int8"
-    stt_device: str = "cuda"                     # cuda | cpu  (drop STT to cpu if 4GB VRAM is contended)
+    # STT — cloud-first default
+    stt_engine: str = "groq-openrouter"          # groq-openrouter | deepgram | faster-whisper(local) | groq
+    stt_model: str = "whisper-large-v3-turbo"
+    stt_compute_type: str = "int8"               # only used by the local faster-whisper tier
+    stt_device: str = "cpu"                       # only used by local tier; cuda|cpu
 
     # LLM (via OpenRouter gateway per global doctrine)
     llm_model: str = "openai/gpt-5"
     llm_base_url: str = "https://openrouter.ai/api/v1"
     llm_fast_provider: str = "cerebras"          # OpenRouter provider pin for the FAST/voice tier (else TTFT SLA breaks)
 
-    # TTS
-    tts_engine: str = "kokoro"                   # kokoro | cartesia | elevenlabs | piper
-    tts_voice_id: str = "af_heart"
-    tts_device: str = "cpu"                      # default Kokoro to CPU so it never contends with CUDA Whisper on 4GB
+    # TTS — cloud-first default (ElevenLabs key is live; Cartesia Sonic-3.5 when keyed)
+    tts_engine: str = "elevenlabs"               # elevenlabs | cartesia | kokoro(local) | piper(local)
+    tts_voice_id: str = ""                       # engine-specific; adapter picks a sensible default when blank
+    tts_device: str = "cpu"                       # only used by the local Kokoro/Piper tier
 
     # SLA (mirrors benchmarks/budgets.toml [hot_path])
     first_audio_p50_budget_ms: int = 800

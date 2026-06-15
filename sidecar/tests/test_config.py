@@ -18,24 +18,24 @@ def test_load_local_env_reads_env_local_without_overwriting_process_env(tmp_path
     assert os.environ["ELEVENLABS_API_KEY"] == "eleven-test"
 
 
-def test_settings_defaults_match_validated_stack() -> None:
+def test_settings_defaults_are_cloud_first() -> None:
     s = Settings()
-    assert s.stt_engine == "faster-whisper"
-    assert s.tts_engine == "kokoro"
-    assert s.llm_fast_provider == "cerebras"  # FAST tier must pin a sub-200ms-TTFT provider
+    assert s.stt_engine == "groq-openrouter"   # cloud-first: live Groq+OpenRouter keys
+    assert s.tts_engine == "elevenlabs"        # cloud-first: live ElevenLabs key
+    assert s.llm_fast_provider == "cerebras"   # FAST tier must pin a sub-200ms-TTFT provider
     assert s.first_audio_p50_budget_ms == 800
     assert "stt_engine" in s.to_dict()
 
 
 def test_settings_from_env_overrides(monkeypatch) -> None:
-    monkeypatch.setenv("STARLIGHT_TTS_ENGINE", "cartesia")
-    monkeypatch.setenv("STARLIGHT_STT_DEVICE", "cpu")
+    monkeypatch.setenv("STARLIGHT_TTS_ENGINE", "kokoro")    # opt into the local tier
+    monkeypatch.setenv("STARLIGHT_STT_ENGINE", "faster-whisper")
     s = Settings.from_env()
-    assert s.tts_engine == "cartesia"
-    assert s.stt_device == "cpu"
-    assert s.stt_engine == "faster-whisper"  # unset -> default
+    assert s.tts_engine == "kokoro"
+    assert s.stt_engine == "faster-whisper"
+    assert s.llm_model == "openai/gpt-5"  # unset -> default
 
 
 def test_settings_from_env_blank_falls_back_to_default(monkeypatch) -> None:
     monkeypatch.setenv("STARLIGHT_TTS_ENGINE", "   ")
-    assert Settings.from_env().tts_engine == "kokoro"
+    assert Settings.from_env().tts_engine == "elevenlabs"
