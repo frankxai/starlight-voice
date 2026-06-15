@@ -29,7 +29,9 @@ def main(argv: list[str] | None = None) -> int:
     browser.add_argument("--live", action="store_true", help="Run live browser automation if optional deps are installed")
 
     sub.add_parser("serve", help="Run JSON-lines IPC on stdin/stdout")
-    sub.add_parser("voice", help="Report voice-loop settings + adapter readiness (gated until P1 wired)")
+    voice = sub.add_parser("voice", help="Voice loop: readiness (default), --selftest (assemble graph), --run (live)")
+    voice.add_argument("--selftest", action="store_true", help="Construct the cloud graph headlessly (no mic) and report")
+    voice.add_argument("--run", action="store_true", help="Open mic/speakers and run the live loop (needs the voice extra)")
 
     args = parser.parse_args(argv)
     pipeline = AgentPipeline()
@@ -58,6 +60,15 @@ def main(argv: list[str] | None = None) -> int:
         return server.serve(sys.stdin, sys.stdout)
 
     if args.command == "voice":
+        if args.run:
+            import asyncio
+
+            from .voice_loop import run as voice_run
+            return asyncio.run(voice_run(Settings.from_env()))
+        if args.selftest:
+            from .voice_loop import selftest
+            print(json.dumps(selftest(Settings.from_env()), separators=(",", ":")))
+            return 0
         settings = Settings.from_env()
         availability = adapters.availability()
         selected = {

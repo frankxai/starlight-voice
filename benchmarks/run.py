@@ -83,8 +83,17 @@ def main() -> int:
                 f"hint='{status['install_hint']}'"
             )
             return 0  # gated is not a failure; it is the honest pre-install state
-        # TODO(P1 step 7): real timed run through voice_loop.py once adapters are wired.
-        print("probe=first-audio READY but voice_loop measurement not yet wired (see PRD v2.1 step 7)")
+        # Graph assembles? (construction gate). Real first-audio latency still needs a live
+        # mic run on-device — `python -m starlight_voice voice --run` — measured to PLAYABLE audio.
+        from starlight_voice.voice_loop import selftest
+
+        st = selftest()
+        print(
+            f"probe=first-audio READY graph_ok={st['ok']} processors={st['pipeline_processors']} "
+            f"stt={st['stt']} llm={st['llm']} tts={st['tts']} "
+            f"p50_budget_ms={status['p50_budget_ms']} "
+            f"(live latency: run `python -m starlight_voice voice --run` on-device)"
+        )
         return 0
 
     samples = measure_router(args.n) if args.probe == "router" else measure_browser_dry_run(args.n)
