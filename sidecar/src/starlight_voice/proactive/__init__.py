@@ -5,4 +5,4 @@ MVP needs neither. A scheduled task runs `analyzer` at 04:30; the first push-to-
 day speaks the cached brief through the realtime TTS lane (so it still hits the latency budget).
 """
 
-from .analyzer import RepoFinding, scan_repos, score_findings, build_brief  # noqa: F401
+from .analyzer import RepoFinding, build_brief, scan_repos, score_findings  # noqa: F401

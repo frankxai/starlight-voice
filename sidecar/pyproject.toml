@@ -49,7 +49,17 @@ browser = [
 ]
 dev = [
   "pytest>=8.0.0",
+  "ruff>=0.6",
 ]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]  # pyflakes, pycodestyle, isort, bugbear, pyupgrade
+ignore = ["E501"]                      # line-length handled by formatter, not lint-fatal
 
 [project.scripts]
 starlight-voice-sidecar = "starlight_voice.__main__:main"

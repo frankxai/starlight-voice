@@ -39,3 +39,21 @@ def test_settings_from_env_overrides(monkeypatch) -> None:
 def test_settings_from_env_blank_falls_back_to_default(monkeypatch) -> None:
     monkeypatch.setenv("STARLIGHT_TTS_ENGINE", "   ")
     assert Settings.from_env().tts_engine == "elevenlabs"
+
+
+def test_load_local_env_preserves_special_chars_and_strips_inline_comments(tmp_path, monkeypatch) -> None:
+    for k in ("KEY_QUOTED", "KEY_PLAIN", "KEY_HASHVAL"):
+        monkeypatch.delenv(k, raising=False)
+    (tmp_path / ".env").write_text(
+        # quoted value with '=' and '#' inside must survive verbatim
+        'KEY_QUOTED="sk-or-v1=ab#cd"\n'
+        # unquoted value with a trailing inline comment must be trimmed
+        "KEY_PLAIN=hello world  # trailing note\n"
+        # a literal '#' in an unquoted value without a leading space is kept
+        "KEY_HASHVAL=abc#def\n",
+        encoding="utf-8",
+    )
+    load_local_env(tmp_path)
+    assert os.environ["KEY_QUOTED"] == "sk-or-v1=ab#cd"
+    assert os.environ["KEY_PLAIN"] == "hello world"
+    assert os.environ["KEY_HASHVAL"] == "abc#def"

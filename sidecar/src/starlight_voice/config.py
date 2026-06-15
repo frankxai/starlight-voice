@@ -4,7 +4,6 @@ import os
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-
 ENV_FILES = (".env.local", ".env")
 
 
@@ -27,7 +26,15 @@ def load_local_env(root: Path | None = None) -> list[Path]:
                 continue
             key, value = line.split("=", 1)
             key = key.strip()
-            value = value.strip().strip('"').strip("'")
+            value = value.strip()
+            # Quoted value: take content verbatim (preserves '#' and '=' inside). Unquoted:
+            # drop a trailing ' # inline comment'. Avoids silently truncating real values.
+            if value[:1] in ("'", '"'):
+                quote = value[0]
+                end = value.find(quote, 1)
+                value = value[1:end] if end != -1 else value[1:]
+            elif " #" in value:
+                value = value.split(" #", 1)[0].strip()
             if key and key not in os.environ:
                 os.environ[key] = value
 
@@ -79,7 +86,7 @@ class Settings:
     first_audio_p95_budget_ms: int = 1500
 
     @classmethod
-    def from_env(cls) -> "Settings":
+    def from_env(cls) -> Settings:
         return cls(
             stt_engine=_env("STARLIGHT_STT_ENGINE", cls.stt_engine),
             stt_model=_env("STARLIGHT_STT_MODEL", cls.stt_model),

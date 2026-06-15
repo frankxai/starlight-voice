@@ -82,7 +82,7 @@ def _router_processor():
     router = CognitionRouter()
 
     class RouterProcessor(FrameProcessor):
-        async def process_frame(self, frame, direction: "FrameDirection"):
+        async def process_frame(self, frame, direction: FrameDirection):
             await super().process_frame(frame, direction)
             if isinstance(frame, TranscriptionFrame) and getattr(frame, "text", "").strip():
                 decision = router.decide(frame.text)
@@ -101,10 +101,10 @@ def build_graph(settings: Settings | None = None, *, with_transport: bool):
     Returns (pipeline, transport_or_None).
     """
     settings = settings or Settings.from_env()
-    for engine in ("groq-openrouter", "openrouter", "elevenlabs", "pipecat"):
-        # availability() maps these to importable deps; require() raises with install hint
-        pass
-    adapters.require("pipecat")
+    # Fail early (with an actionable install hint) if a SELECTED engine's deps are missing —
+    # replaces a former dead no-op loop. require() raises VoiceDepsUnavailable on absence.
+    for engine in (settings.stt_engine, "openrouter", settings.tts_engine, "pipecat"):
+        adapters.require(engine)
 
     from pipecat.pipeline.pipeline import Pipeline
     from pipecat.processors.aggregators.llm_context import LLMContext

@@ -61,7 +61,7 @@ class MemoryGatewayClient:
     harness: str = "voice"
 
     @classmethod
-    def autodiscover(cls, **kw) -> "MemoryGatewayClient":
+    def autodiscover(cls, **kw) -> MemoryGatewayClient:
         return cls(base_url=discover_gateway(), **kw)
 
     def available(self) -> bool:

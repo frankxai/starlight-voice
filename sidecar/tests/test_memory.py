@@ -19,8 +19,8 @@ def test_discover_reads_gateway_json(tmp_path, monkeypatch) -> None:
 
 
 def test_discover_missing_returns_none(monkeypatch) -> None:
-    monkeypatch.setenv("STARLIGHT_GATEWAY_JSON", str("/no/such/gateway.json"))
-    monkeypatch.setenv("STARLIGHT_SIS_ROOT", str("/no/such/root"))
+    monkeypatch.setenv("STARLIGHT_GATEWAY_JSON", "/no/such/gateway.json")
+    monkeypatch.setenv("STARLIGHT_SIS_ROOT", "/no/such/root")
     # home-dir candidates may also be absent in CI; tolerate either None or a real local gateway
     assert discover_gateway() in (None,) or discover_gateway().startswith("http://")
 

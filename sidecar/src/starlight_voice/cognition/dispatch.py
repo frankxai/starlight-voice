@@ -12,11 +12,11 @@ from __future__ import annotations
 
 import subprocess
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import ulid
 
-from .fleet import FleetAgent, complexity_score, select_agent
+from .fleet import complexity_score, select_agent
 
 # Tier doctrine (PRD §4) — DEFAULT-DENY (review wf_a9484479: a deny-list keyword gate is
 # fail-OPEN — it missed "nuke the prod database" and false-blocked "merge sort"). The gate's
@@ -94,7 +94,7 @@ def build_handoff_packet(task: str, *, source: str = "voice", now: datetime | No
     score = complexity_score(task)
     agent = select_agent(score)
     tier = approval_tier(task)
-    stamp = (now or datetime.now(timezone.utc)).isoformat()
+    stamp = (now or datetime.now(UTC)).isoformat()
     if tier == "D":
         spoken = f"Blocked: that's an always-ask action. I will not run \"{task}\" without your explicit go-ahead."
     elif tier == "A":
