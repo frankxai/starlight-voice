@@ -1,0 +1,15 @@
+# Normalize line endings — stops the CRLF warnings on every commit (cross-machine repo).
+* text=auto eol=lf
+*.py text eol=lf
+*.toml text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.rs text eol=lf
+*.lock text eol=lf
+# Binary / generated — never normalize
+*.png binary
+*.ico binary
+*.wav binary
