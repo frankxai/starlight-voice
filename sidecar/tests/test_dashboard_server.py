@@ -1,0 +1,71 @@
+"""Hardening tests for the dashboard HTTP server (DoS guard, healthz, write path)."""
+
+import json
+import sys
+import threading
+import time
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+import pytest
+
+_DASH = Path(__file__).resolve().parents[2] / "dashboard"
+sys.path.insert(0, str(_DASH))
+import server as dash  # noqa: E402
+
+
+@pytest.fixture
+def live_server():
+    srv = dash.make_server(0)  # ephemeral port
+    host, port = srv.server_address
+    base = f"http://{host}:{port}"
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    # wait for readiness (kills the thread-startup race that made this flaky)
+    for _ in range(50):
+        try:
+            urllib.request.urlopen(base + "/healthz", timeout=1)
+            break
+        except Exception:
+            time.sleep(0.02)
+    try:
+        yield base
+    finally:
+        srv.shutdown()
+
+
+def test_healthz_ok(live_server) -> None:
+    resp = urllib.request.urlopen(live_server + "/healthz", timeout=5)
+    assert json.loads(resp.read())["ok"] is True
+    assert resp.headers["X-Content-Type-Options"] == "nosniff"  # security header present
+
+
+def test_oversized_post_is_rejected(live_server) -> None:
+    # Assert the GUARANTEE (oversized refused), not the transport detail: rejecting a large
+    # POST without draining the body can surface as a clean 413 OR a connection abort (the
+    # server closes rather than read 64KB+). Both mean the memory-DoS guard fired.
+    big = b'{"x":"' + b"a" * 70000 + b'"}'  # > 64KB MAX_BODY
+    req = urllib.request.Request(live_server + "/ratings", data=big, method="POST")
+    try:
+        urllib.request.urlopen(req, timeout=5)
+        raise AssertionError("oversized POST must be rejected")
+    except urllib.error.HTTPError as exc:
+        assert exc.code == 413
+    except OSError:
+        pass  # connection aborted == refused-without-reading; guard still fired
+
+
+def test_valid_rating_writes_ok(live_server, tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(dash, "RATINGS", tmp_path / "r.jsonl")  # don't touch real ratings
+    data = json.dumps({"option": "hybrid", "rating": 9}).encode("utf-8")
+    req = urllib.request.Request(live_server + "/ratings", data=data, method="POST")
+    resp = urllib.request.urlopen(req, timeout=5)
+    assert json.loads(resp.read())["ok"] is True
+    assert (tmp_path / "r.jsonl").exists()
+
+
+def test_unknown_post_route_404(live_server) -> None:
+    req = urllib.request.Request(live_server + "/nope", data=b"{}", method="POST")
+    with pytest.raises(urllib.error.HTTPError) as exc:
+        urllib.request.urlopen(req, timeout=5)
+    assert exc.value.code == 404
