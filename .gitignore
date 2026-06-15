@@ -33,5 +33,5 @@ desktop.ini
 sidecar/.starlight-voice/
 dashboard/ratings.jsonl
 
-# generated morning briefs
-memory/voice/
+# generated morning briefs + dispatch run-ledger (at repo root AND sidecar/ — match any depth)
+**/memory/voice/
