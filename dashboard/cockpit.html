@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Starlight Voice — Operator Cockpit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./cockpit.css" />
+  </head>
+  <body>
+    <main class="cockpit" aria-label="Starlight Voice operator cockpit">
+      <header class="topbar">
+        <div class="brand">
+          <span class="sigil" aria-hidden="true"></span>
+          <div>
+            <p class="eyebrow">Starlight Voice</p>
+            <h1>Operator Cockpit</h1>
+          </div>
+        </div>
+        <div class="live" id="liveState" role="status" aria-live="polite">
+          <span class="dot" aria-hidden="true"></span><span id="liveLabel">connecting…</span>
+        </div>
+      </header>
+
+      <section class="grid">
+        <article class="glass card" aria-labelledby="loopH">
+          <h2 id="loopH">Voice loop</h2>
+          <dl class="kv" id="loopKv"></dl>
+          <p class="budget">first-audio budget <strong id="budget">—</strong></p>
+        </article>
+
+        <article class="glass card" aria-labelledby="lanesH">
+          <h2 id="lanesH">Architecture bake-off</h2>
+          <ul class="lanes" id="lanes"></ul>
+        </article>
+
+        <article class="glass card" aria-labelledby="memH">
+          <h2 id="memH">Memory grounding</h2>
+          <p class="gateway" id="gateway">—</p>
+          <p class="hint">non-FAST turns recall from the SIS gateway (degrade-first).</p>
+        </article>
+
+        <article class="glass card span-2" aria-labelledby="ledgerH">
+          <h2 id="ledgerH">Dispatch ledger <span class="muted">— what the agents are doing</span></h2>
+          <ol class="ledger" id="ledger"></ol>
+        </article>
+
+        <article class="glass card" aria-labelledby="adaptersH">
+          <h2 id="adaptersH">Adapters</h2>
+          <ul class="adapters" id="adapters"></ul>
+        </article>
+      </section>
+
+      <footer class="foot">
+        <span>Built on SIP</span><span aria-hidden="true">·</span>
+        <span id="err" class="err"></span>
+      </footer>
+    </main>
+    <script src="./cockpit.js"></script>
+  </body>
+</html>

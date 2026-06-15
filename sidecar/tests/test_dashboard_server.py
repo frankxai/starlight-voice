@@ -64,6 +64,13 @@ def test_valid_rating_writes_ok(live_server, tmp_path, monkeypatch) -> None:
     assert (tmp_path / "r.jsonl").exists()
 
 
+def test_status_endpoint_returns_live_state(live_server) -> None:
+    resp = urllib.request.urlopen(live_server + "/status", timeout=5)
+    data = json.loads(resp.read())
+    assert "variants" in data and "settings" in data  # cockpit's data source
+    assert {v["key"] for v in data["variants"]} == {"component", "openai-realtime", "gemini-live"}
+
+
 def test_unknown_post_route_404(live_server) -> None:
     req = urllib.request.Request(live_server + "/nope", data=b"{}", method="POST")
     with pytest.raises(urllib.error.HTTPError) as exc:

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from datetime import datetime, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -10,6 +11,16 @@ from urllib.parse import urlparse
 ROOT = Path(__file__).resolve().parent
 RATINGS = ROOT / "ratings.jsonl"
 MAX_BODY = 64 * 1024  # reject oversized POSTs (memory-DoS guard)
+sys.path.insert(0, str(ROOT.parent / "sidecar" / "src"))  # for /status -> system_status()
+
+
+def _system_status() -> dict:
+    """Live operator state for the cockpit. Degrades to an error dict if the sidecar isn't importable."""
+    try:
+        from starlight_voice.status import system_status
+        return system_status()
+    except Exception as e:  # noqa: BLE001 - cockpit must render even if the sidecar is absent
+        return {"error": f"{type(e).__name__}: {e}", "settings": {}, "adapters": {}, "variants": [], "runs": []}
 
 
 class DashboardHandler(SimpleHTTPRequestHandler):
@@ -25,8 +36,12 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         pass
 
     def do_GET(self) -> None:
-        if urlparse(self.path).path == "/healthz":
+        path = urlparse(self.path).path
+        if path == "/healthz":
             self._json(200, {"ok": True, "service": "starlight-voice-dashboard"})
+            return
+        if path == "/status":
+            self._json(200, _system_status())
             return
         super().do_GET()
 
