@@ -5,14 +5,39 @@ description = "Python sidecar for Starlight Voice"
 requires-python = ">=3.12"
 dependencies = []
 
+# NOTE: voice/workflow deps are EXTRAS, not base dependencies, on purpose — they pull
+# CUDA/ONNX wheels that would break CI and OSS portability if forced into every install.
+# Frank's machine install (v2.1): `uv pip install -e .[voice,providers]`.
+# Pins verified against the 2026-06-15 research synthesis; re-verify resolution on Python 3.13.
 [project.optional-dependencies]
 voice = [
-  "pipecat-ai>=0.0.50",
-  "sounddevice>=0.5.0",
+  # pipecat 1.0+ with the local-first transport + engines used by the in-process graph
+  "pipecat-ai[silero,whisper,local-smart-turn-v3,openrouter,kokoro]>=1.0,<2",
+  "pyaudio>=0.2.14",            # PortAudio/WASAPI; canonical LocalAudioTransport path (replaces sounddevice)
+  "faster-whisper>=1.1.0",
+  "ctranslate2>=4.8.0",         # MANDATORY: cp313 win_amd64 wheel only landed 2026-06-06; needs cuDNN 9 / CUDA 12.3+
+  "nvidia-cudnn-cu12>=9",
+  "nvidia-cublas-cu12",
+  "kokoro-onnx>=0.5.0",         # Apache-2.0 local TTS default
+  "onnxruntime",               # CPU-safe; verify onnxruntime-gpu inits on GTX 1650 before relying on GPU
+  "piper-tts",                 # MIT, CPU-only always-works fallback TTS
 ]
 providers = [
-  "anthropic>=0.65.0",
-  "openai>=1.100.0",
+  "openai>=1.100.0",            # OpenRouter LLM + Groq /audio/transcriptions (OpenAI-compatible)
+  "httpx>=0.27",               # OpenRouter synthesis call + provider-pin request bodies
+  "ulid-py>=1.1",              # handoff-packet IDs
+]
+# Cloud-quality TTS tier (optional; bake-off Cartesia vs ElevenLabs before locking default)
+tts-cloud = [
+  "cartesia>=1.0",             # Sonic 3.5 streaming (Sonic-2 deprecated, cutover passed)
+  "websockets>=12",            # ElevenLabs Flash v2.5 stream-input over raw websockets
+]
+# Workflow/agent-loop engine, behind the router for non-audio tiers only
+workflow = [
+  "deepagents>=0.6.10",
+  "langgraph>=1.0.10",
+  "langgraph-checkpoint>=3.0",          # RCE patch lives here (msgpack deser CVE-2026-28277)
+  "langgraph-checkpoint-sqlite>=3.0.3", # RCE patch (SQLi CVE-2025-67644)
 ]
 browser = [
   "browser-use[core]>=0.13.0",

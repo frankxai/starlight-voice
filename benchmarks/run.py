@@ -9,8 +9,10 @@ from time import perf_counter
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "sidecar" / "src"))
 
+from starlight_voice import adapters  # noqa: E402
 from starlight_voice.browser import BrowserAutomationAdapter  # noqa: E402
 from starlight_voice.cognition import CognitionRouter  # noqa: E402
+from starlight_voice.config import Settings  # noqa: E402
 
 
 def measure_router(n: int) -> list[int]:
@@ -33,11 +35,57 @@ def measure_browser_dry_run(n: int) -> list[int]:
     return samples
 
 
+def first_audio_readiness() -> dict[str, object]:
+    """Gate for the e2e first-audio probe.
+
+    The load-bearing P1 deliverable is measuring mic-close -> first PLAYABLE TTS chunk on
+    THIS GTX 1650, not assuming the ~800ms budget. Until the selected STT/LLM/TTS engines
+    are installed and `voice_loop.py` is wired, this reports the budget + exactly what is
+    missing instead of fabricating a latency number. When the loop lands, replace the
+    `ready=False` branch with the real timed run (measure to playable audio, PAST WAV/Ogg/ID3
+    container headers — those falsely report ~50ms).
+    """
+    settings = Settings.from_env()
+    avail = adapters.availability()
+    needed = {
+        "stt": settings.stt_engine,
+        "llm": "openrouter",
+        "tts": settings.tts_engine,
+        "framework": "pipecat",
+    }
+    missing = [f"{stage}:{eng}" for stage, eng in needed.items() if not avail.get(eng, False)]
+    return {
+        "ready": not missing,
+        "selected": needed,
+        "missing": missing,
+        "p50_budget_ms": settings.first_audio_p50_budget_ms,
+        "p95_budget_ms": settings.first_audio_p95_budget_ms,
+        "install_hint": adapters.INSTALL_HINT,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--probe", choices=["router", "browser-dry-run"], default="router")
+    parser.add_argument(
+        "--probe",
+        choices=["router", "browser-dry-run", "first-audio"],
+        default="router",
+    )
     parser.add_argument("--n", type=int, default=50)
     args = parser.parse_args()
+
+    if args.probe == "first-audio":
+        status = first_audio_readiness()
+        if not status["ready"]:
+            print(
+                f"probe=first-audio GATED missing={','.join(status['missing']) or 'none'} "
+                f"p50_budget_ms={status['p50_budget_ms']} p95_budget_ms={status['p95_budget_ms']} "
+                f"hint='{status['install_hint']}'"
+            )
+            return 0  # gated is not a failure; it is the honest pre-install state
+        # TODO(P1 step 7): real timed run through voice_loop.py once adapters are wired.
+        print("probe=first-audio READY but voice_loop measurement not yet wired (see PRD v2.1 step 7)")
+        return 0
 
     samples = measure_router(args.n) if args.probe == "router" else measure_browser_dry_run(args.n)
     p50 = int(statistics.median(samples))
