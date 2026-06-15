@@ -17,6 +17,7 @@ from datetime import UTC, datetime
 import ulid
 
 from .fleet import select_agent
+from .ledger import record_run, resolve_relevant_files
 
 # Tier doctrine (PRD §4) — DEFAULT-DENY (review wf_a9484479: a deny-list keyword gate is
 # fail-OPEN — it missed "nuke the prod database" and false-blocked "merge sort"). The gate's
@@ -120,6 +121,7 @@ def build_handoff_packet(
         approval_required=(tier != "A"),
         approval_tier=tier,
         spoken_update_for_frank=spoken,
+        relevant_files=resolve_relevant_files(task),  # resolve repo names -> abs paths
     )
 
 
@@ -131,25 +133,23 @@ class Dispatcher:
 
     def dispatch(self, task: str, *, source: str = "voice") -> dict[str, object]:
         packet = build_handoff_packet(task, source=source)
-        result: dict[str, object] = {"packet": packet.to_dict()}
+        pd = packet.to_dict()
 
-        # Tier D = CLAUDE.md ALWAYS-ASK — hard stop, never auto-runs even live, even with generic ack.
+        # Single-exit so EVERY outcome is recorded to the append-only audit ledger.
         if packet.approval_tier == "D":
-            result["status"] = "hard-blocked"
-            result["note"] = "ALWAYS-ASK action — requires Frank's explicit, specific go-ahead. Never auto-runs."
-            return result
+            # Tier D = CLAUDE.md ALWAYS-ASK — hard stop, never auto-runs even live.
+            status, note = "hard-blocked", "ALWAYS-ASK action — requires Frank's explicit, specific go-ahead."
+        elif not self.live:
+            status, note = "dry-run", "live=False — packet built, no spawn. Set live=True to execute Tier-A tasks."
+        elif packet.approval_required:
+            status, note = "awaiting-approval", f"Tier {packet.approval_tier} — held for Frank's read-back + ack."
+        else:
+            status, note = ("spawned" if self._spawn(packet) else "spawn-failed"), None
 
-        if not self.live:
-            result["status"] = "dry-run"
-            result["note"] = "live=False — packet built, no spawn. Set live=True to execute Tier-A tasks."
-            return result
-
-        if packet.approval_required:
-            result["status"] = "awaiting-approval"
-            result["note"] = f"Tier {packet.approval_tier} — held for Frank's spoken read-back + ack before spawn."
-            return result
-
-        result["status"] = "spawned" if self._spawn(packet) else "spawn-failed"
+        record_run(pd, status)
+        result: dict[str, object] = {"packet": pd, "status": status}
+        if note:
+            result["note"] = note
         return result
 
     @staticmethod

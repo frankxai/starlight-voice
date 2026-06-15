@@ -42,6 +42,9 @@ def main(argv: list[str] | None = None) -> int:
     brief.add_argument("paths", nargs="*", help="Repo paths to scan (default: STARLIGHT_BRIEF_REPOS or this repo)")
     brief.add_argument("--speak", action="store_true", help="Synthesize the spoken summary via OpenRouter")
 
+    runs = sub.add_parser("runs", help="Recent dispatch run-ledger records (what the agents are doing)")
+    runs.add_argument("--limit", type=int, default=20)
+
     args = parser.parse_args(argv)
     pipeline = AgentPipeline()
 
@@ -73,6 +76,12 @@ def main(argv: list[str] | None = None) -> int:
 
         outcome = Dispatcher(live=args.live).dispatch(" ".join(args.task))
         print(json.dumps(outcome, separators=(",", ":")))
+        return 0
+
+    if args.command == "runs":
+        from .cognition.ledger import read_runs
+
+        print(json.dumps(read_runs(limit=args.limit), separators=(",", ":")))
         return 0
 
     if args.command == "brief":
