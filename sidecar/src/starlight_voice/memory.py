@@ -22,6 +22,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 GATEWAY_JSON = "gateway.json"
+GATEWAY_TOKEN = "gateway.token"  # daemon writes a random bearer here; requests without it get 401
 
 
 def _candidate_info_paths() -> list[Path]:
@@ -38,18 +39,28 @@ def _candidate_info_paths() -> list[Path]:
     return paths
 
 
-def discover_gateway() -> str | None:
-    """Return the base URL (http://host:port) from gateway.json, or None if not running."""
+def discover_gateway_auth() -> tuple[str | None, str | None]:
+    """Find the running daemon: (base_url, bearer_token) from gateway.json + sibling gateway.token."""
     for p in _candidate_info_paths():
         try:
-            if p.exists():
-                info = json.loads(p.read_text(encoding="utf-8"))
-                host, port = info.get("host", "127.0.0.1"), info.get("port")
-                if port:
-                    return f"http://{host}:{port}"
+            if not p.exists():
+                continue
+            info = json.loads(p.read_text(encoding="utf-8"))
+            port = info.get("port")
+            if not port:
+                continue
+            url = f"http://{info.get('host', '127.0.0.1')}:{port}"
+            token_file = p.parent / GATEWAY_TOKEN
+            token = token_file.read_text(encoding="utf-8").strip() if token_file.exists() else None
+            return url, token
         except Exception:
             continue
-    return None
+    return None, None
+
+
+def discover_gateway() -> str | None:
+    """Base URL only (status/health use this). None if the daemon isn't running."""
+    return discover_gateway_auth()[0]
 
 
 @dataclass(frozen=True)
@@ -57,18 +68,20 @@ class MemoryGatewayClient:
     """Thin client over the SIS Memory Gateway. Timeout-degrades to empty, never raises upward."""
 
     base_url: str | None = None
+    token: str | None = None         # bearer; without it the daemon returns 401 -> [] (degrade)
     timeout_s: float = 0.12          # hard SLA budget — slow gateway -> context-less, not stalled
     harness: str = "voice"
 
     @classmethod
     def autodiscover(cls, **kw) -> MemoryGatewayClient:
-        return cls(base_url=discover_gateway(), **kw)
+        url, token = discover_gateway_auth()
+        return cls(base_url=url, token=token, **kw)
 
     def available(self) -> bool:
         return bool(self.base_url)
 
     def search(self, query: str, *, limit: int = 4, vaults: list[str] | None = None) -> list[dict]:
-        """Hybrid recall. Returns [] on any failure/timeout (degrade-first)."""
+        """Hybrid recall. Returns [] on any failure/timeout/401 (degrade-first)."""
         if not self.base_url or not query.strip():
             return []
         try:
@@ -77,12 +90,17 @@ class MemoryGatewayClient:
             body: dict = {"query": query, "limit": limit, "retrieval_mode": "hybrid"}
             if vaults:
                 body["vaults"] = vaults
+            headers = {"x-harness": self.harness}
+            if self.token:
+                headers["Authorization"] = f"Bearer {self.token}"  # else daemon -> 401
             resp = httpx.post(
                 f"{self.base_url}/v1/memory/search",
                 json=body,
-                headers={"x-harness": self.harness},
+                headers=headers,
                 timeout=self.timeout_s,
             )
+            if resp.status_code == 401:
+                return []  # auth missing/stale -> treat as unavailable, never crash
             data = resp.json()
             # gateway returns {ok, status, body:{results|atoms|...}} — be tolerant of shape
             payload = data.get("body", data) if isinstance(data, dict) else {}
