@@ -113,3 +113,25 @@ def selftest_all(settings: Settings | None = None) -> list[dict[str, object]]:
     """Assemble every variant headlessly; report which are runnable now. Honest about blocked lanes."""
     settings = settings or Settings.from_env()
     return [selftest_variant(k, settings) for k in VARIANTS]
+
+
+async def run_variant(variant: str, settings: Settings | None = None) -> int:
+    """Open mic/speakers and run a chosen architecture variant live (the bake-off on-device).
+
+    Same harness as voice_loop.run, but the engine block is `variant`. Guarded so a fatal
+    returns nonzero (Tauri restarts the sidecar). Needs the voice extra + a mic.
+    """
+    import sys
+
+    from pipecat.pipeline.runner import PipelineRunner
+    from pipecat.pipeline.task import PipelineParams, PipelineTask
+
+    settings = settings or Settings.from_env()
+    pipeline = _assemble(variant, settings, with_transport=True)
+    task = PipelineTask(pipeline, params=PipelineParams(allow_interruptions=True))
+    try:
+        await PipelineRunner().run(task)
+        return 0
+    except Exception as e:  # pragma: no cover - needs a live mic + runner
+        print(f"[voice:{variant}] fatal: {type(e).__name__}: {e}", file=sys.stderr)
+        return 1

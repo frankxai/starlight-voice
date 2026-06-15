@@ -33,6 +33,8 @@ def main(argv: list[str] | None = None) -> int:
     voice = sub.add_parser("voice", help="Voice loop: readiness (default), --selftest (assemble graph), --run (live)")
     voice.add_argument("--selftest", action="store_true", help="Construct the cloud graph headlessly (no mic) and report")
     voice.add_argument("--run", action="store_true", help="Open mic/speakers and run the live loop (needs the voice extra)")
+    voice.add_argument("--variant", choices=["component", "openai-realtime", "gemini-live"],
+                       help="Bake-off lane: which architecture to selftest/run (default: component)")
 
     disp = sub.add_parser("dispatch", help="Route a coding task to the fleet (dry-run packet preview)")
     disp.add_argument("task", nargs="+")
@@ -103,6 +105,15 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "voice":
+        if args.variant:  # bake-off lane (component / openai-realtime / gemini-live)
+            from . import voice_engines
+
+            if args.run:
+                import asyncio
+
+                return asyncio.run(voice_engines.run_variant(args.variant, Settings.from_env()))
+            print(json.dumps(voice_engines.selftest_variant(args.variant, Settings.from_env()), separators=(",", ":")))
+            return 0
         if args.run:
             import asyncio
 
