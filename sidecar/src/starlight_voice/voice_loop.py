@@ -16,6 +16,7 @@ API verified live against pipecat-ai 1.3.0 (service/transport/context-aggregator
 from __future__ import annotations
 
 import os
+import sys
 
 from . import adapters
 from .cognition import CognitionRouter
@@ -33,23 +34,30 @@ def _stt_service(settings: Settings):
 
 
 def _llm_service(settings: Settings):
-    """LLM via the OpenRouter gateway.
+    """LLM via the OpenRouter gateway, with the FAST-tier provider PINNED.
 
     Provider-pin-by-tier (Cerebras for the FAST/voice tier) is owned here, NOT the router —
     without it OpenRouter may route to a 600ms+ TTFT provider and silently break the SLA.
-    Passed through OpenRouter's `provider` routing field via extra body.
+
+    Uses the canonical `settings=` API (the old `params=`/InputParams path silently DROPPED
+    the pin — review wf_a9484479 reproduced svc._settings.extra == {}). allow_fallbacks=False:
+    the voice tier must NOT egress transcripts to an arbitrary slow upstream on a near-miss.
+    Fails LOUD at build if the pin didn't land — never ship the SLA feature as a silent no-op.
     """
     from pipecat.services.openrouter.llm import OpenRouterLLMService
 
-    extra = {"provider": {"order": [settings.llm_fast_provider], "allow_fallbacks": True}}
-    return OpenRouterLLMService(
+    provider = {"order": [settings.llm_fast_provider], "allow_fallbacks": False}
+    svc = OpenRouterLLMService(
         api_key=os.environ.get("OPENROUTER_API_KEY"),
-        model=settings.llm_model,
-        base_url=settings.llm_base_url,
-        params=OpenRouterLLMService.InputParams(extra=extra)
-        if hasattr(OpenRouterLLMService, "InputParams")
-        else None,
+        settings=OpenRouterLLMService.Settings(model=settings.llm_model, extra={"provider": provider}),
     )
+    landed = getattr(getattr(svc, "_settings", None), "extra", None) or {}
+    if not landed.get("provider"):
+        raise RuntimeError(
+            "OpenRouter provider-pin DROPPED (svc._settings.extra has no 'provider') — "
+            "FAST-tier TTFT SLA would silently break. Check the pipecat Settings API."
+        )
+    return svc
 
 
 def _tts_service(settings: Settings):
@@ -152,12 +160,23 @@ def selftest(settings: Settings | None = None) -> dict[str, object]:
 
 
 async def run(settings: Settings | None = None) -> int:
-    """Live run: open mic/speakers and run the loop until EndFrame. Needs the `voice` extra + a mic."""
+    """Live run: open mic/speakers and run the loop until EndFrame. Needs the `voice` extra + a mic.
+
+    Resilience (review wf_a9484479): a cloud loop over 3 networked providers WILL hit transient
+    429/500/socket-drops on a mobile link — that's the common case. The runner is guarded so a
+    fatal returns a nonzero exit (the Tauri shell restarts the sidecar) instead of crashing
+    silently. Per-turn retry / spoken "lost the model, retrying" fallback is wired on-device where
+    the live runner can be exercised (the pipecat error-event name must be confirmed against a run).
+    """
     from pipecat.pipeline.runner import PipelineRunner
     from pipecat.pipeline.task import PipelineParams, PipelineTask
 
     settings = settings or Settings.from_env()
     pipeline, _ = build_graph(settings, with_transport=True)
     task = PipelineTask(pipeline, params=PipelineParams(allow_interruptions=True))
-    await PipelineRunner().run(task)
-    return 0
+    try:
+        await PipelineRunner().run(task)
+        return 0
+    except Exception as e:  # pragma: no cover - needs a live mic + runner to exercise
+        print(f"[voice] fatal pipeline error: {type(e).__name__}: {e}", file=sys.stderr)
+        return 1

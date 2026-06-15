@@ -26,4 +26,19 @@ def test_selftest_assembles_cloud_graph() -> None:
     assert result["pipeline_processors"] == 8
     assert result["stt"] == "groq-openrouter"
     assert result["tts"] == "elevenlabs"
-    assert "@cerebras" in result["llm"]  # FAST-tier provider pin present
+
+
+@pytest.mark.skipif(
+    not all(os.environ.get(k) for k in _KEYS),
+    reason="cloud provider keys not set",
+)
+def test_provider_pin_lands_on_the_service_not_just_settings_string() -> None:
+    # review wf_a9484479: the old test asserted a string built from Settings, masking that the
+    # pin was dropped on the wire. Assert the ACTUAL constructed service carries the provider block.
+    from starlight_voice.config import Settings
+    from starlight_voice.voice_loop import _llm_service
+
+    svc = _llm_service(Settings.from_env())
+    extra = getattr(svc._settings, "extra", {}) or {}
+    assert extra.get("provider", {}).get("order") == ["cerebras"]
+    assert extra["provider"]["allow_fallbacks"] is False  # no transcript egress on near-miss
