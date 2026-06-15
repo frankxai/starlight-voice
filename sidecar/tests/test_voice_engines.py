@@ -22,7 +22,7 @@ def test_variant_registry_covers_the_three_architectures() -> None:
 def test_component_variant_assembles() -> None:
     r = selftest_variant("component")
     assert r["assembles"] is True
-    assert r["processors"] == 8
+    assert r["processors"] == 9  # stt, router, memory, user, llm, tts, assistant + Source/Sink
 
 
 @pytest.mark.skipif(not os.environ.get("OPENAI_API_KEY"), reason="no OpenAI key")

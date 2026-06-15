@@ -93,6 +93,42 @@ def _router_processor():
     return RouterProcessor()
 
 
+def should_recall(route_tier: str | None) -> bool:
+    """Tier-conditioned memory gate: FAST conversational turns SKIP retrieval to protect the
+    first-audio SLA; deliberation / cli-agent / browser turns pull context. Pure + testable."""
+    from .cognition import RouteTier
+
+    return route_tier != RouteTier.FAST.value
+
+
+def _memory_processor(context):
+    """FrameProcessor that grounds each non-FAST turn with SIS memory recall (degrade-first).
+
+    Reads the route_tier the RouterProcessor stamped, queries the gateway with a hard timeout,
+    and injects results as an UNTRUSTED system message into the shared LLMContext for the turn.
+    A dead/missing gateway -> empty recall -> the turn proceeds context-less (never stalls).
+    """
+    from pipecat.frames.frames import TranscriptionFrame
+    from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
+
+    from .memory import MemoryGatewayClient
+
+    client = MemoryGatewayClient.autodiscover()
+
+    class MemoryContextProcessor(FrameProcessor):
+        async def process_frame(self, frame, direction: FrameDirection):
+            await super().process_frame(frame, direction)
+            if isinstance(frame, TranscriptionFrame) and getattr(frame, "text", "").strip():
+                tier = (getattr(frame, "metadata", {}) or {}).get("route_tier")
+                if should_recall(tier) and client.available():
+                    block = client.as_context_block(frame.text)
+                    if block:
+                        context.add_message({"role": "system", "content": block})
+            await self.push_frame(frame, direction)
+
+    return MemoryContextProcessor()
+
+
 def build_graph(settings: Settings | None = None, *, with_transport: bool):
     """Assemble the Pipecat pipeline.
 
@@ -125,6 +161,7 @@ def build_graph(settings: Settings | None = None, *, with_transport: bool):
         }]
     )
     pair = LLMContextAggregatorPair(context)
+    memory_proc = _memory_processor(context)  # grounds non-FAST turns from SIS memory (degrade-first)
 
     transport = None
     head: list = []
@@ -137,7 +174,7 @@ def build_graph(settings: Settings | None = None, *, with_transport: bool):
         tail = [transport.output()]
 
     pipeline = Pipeline(
-        [*head, stt, router_proc, pair.user(), llm, tts, *tail, pair.assistant()]
+        [*head, stt, router_proc, memory_proc, pair.user(), llm, tts, *tail, pair.assistant()]
     )
     return pipeline, transport
 

@@ -22,8 +22,8 @@ def test_selftest_assembles_cloud_graph() -> None:
 
     result = selftest()
     assert result["ok"] is True
-    # pipecat wraps the 6-service chain (stt, router, user, llm, tts, assistant) with Source+Sink = 8
-    assert result["pipeline_processors"] == 8
+    # 7-proc chain (stt, router, memory, user, llm, tts, assistant) + Source+Sink = 9
+    assert result["pipeline_processors"] == 9
     assert result["stt"] == "groq-openrouter"
     assert result["tts"] == "elevenlabs"
 
@@ -42,3 +42,13 @@ def test_provider_pin_lands_on_the_service_not_just_settings_string() -> None:
     extra = getattr(svc._settings, "extra", {}) or {}
     assert extra.get("provider", {}).get("order") == ["cerebras"]
     assert extra["provider"]["allow_fallbacks"] is False  # no transcript egress on near-miss
+
+
+def test_should_recall_skips_fast_tier_protects_sla() -> None:
+    from starlight_voice.cognition import RouteTier
+    from starlight_voice.voice_loop import should_recall
+
+    assert should_recall(RouteTier.FAST.value) is False        # conversational turn: no retrieval
+    assert should_recall(RouteTier.DELIBERATION.value) is True  # deep turn: pull context
+    assert should_recall(RouteTier.CLI_AGENT.value) is True
+    assert should_recall(None) is True                          # unknown -> ground it
