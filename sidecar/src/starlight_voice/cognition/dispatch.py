@@ -16,7 +16,7 @@ from datetime import UTC, datetime
 
 import ulid
 
-from .fleet import complexity_score, select_agent
+from .fleet import select_agent
 
 # Tier doctrine (PRD §4) — DEFAULT-DENY (review wf_a9484479: a deny-list keyword gate is
 # fail-OPEN — it missed "nuke the prod database" and false-blocked "merge sort"). The gate's
@@ -90,10 +90,16 @@ class HandoffPacket:
         }
 
 
-def build_handoff_packet(task: str, *, source: str = "voice", now: datetime | None = None) -> HandoffPacket:
-    score = complexity_score(task)
+def build_handoff_packet(
+    task: str, *, source: str = "voice", now: datetime | None = None, classifier=None
+) -> HandoffPacket:
+    # ONE classification (LLM structured-output when a classifier is injected, else keyword
+    # fail-closed). Lazy import breaks the classify<->dispatch cycle.
+    from .classify import classify
+
+    c = classify(task, llm_call=classifier)
+    score, tier = c.complexity, c.approval_tier
     agent = select_agent(score)
-    tier = approval_tier(task)
     stamp = (now or datetime.now(UTC)).isoformat()
     if tier == "D":
         spoken = f"Blocked: that's an always-ask action. I will not run \"{task}\" without your explicit go-ahead."
