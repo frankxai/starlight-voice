@@ -13,9 +13,14 @@ dependencies = []
 [project.optional-dependencies]
 voice = [
   # Pipecat 1.0+ orchestrating CLOUD services + local mic/speaker I/O. No GPU/CUDA.
-  "pipecat-ai[groq,elevenlabs,cartesia,openrouter,silero]>=1.0,<2",
+  # silero/smart-turn (auto turn-detection, may pull torch) are NOT here — PTT-first gates
+  # input manually, so they are deferred to the `voice-turn` extra (hands-free/barge-in phase).
+  "pipecat-ai[groq,elevenlabs,cartesia,openrouter]>=1.0,<2",
   "pyaudio>=0.2.14",            # PortAudio/WASAPI local mic capture + speaker playback (needed even cloud-first)
   "websockets>=12",            # ElevenLabs Flash v2.5 stream-input over raw websockets (SDK-free path)
+]
+voice-turn = [
+  "pipecat-ai[silero,local-smart-turn-v3]>=1.0,<2",  # auto turn-detection + barge-in (later phase; may pull torch)
 ]
 voice-local = [
   # OPTIONAL offline/private tier — heavy GPU/ONNX wheels. Install only if running models locally.
