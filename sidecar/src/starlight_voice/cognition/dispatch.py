@@ -64,8 +64,8 @@ class HandoffPacket:
     created_at: str
     source: str
     intent_class: str
-    target_system: str        # fleet agent name
-    target_cli: str           # command-grid alias
+    target_system: str        # repo name (from agent-sessions.json) or fleet agent name
+    target_cli: str           # real agent binary to spawn (claude/codex/opencode/agy)
     target_model: str
     task: str
     complexity: int
@@ -73,6 +73,7 @@ class HandoffPacket:
     approval_tier: str
     spoken_update_for_frank: str
     relevant_files: list[str] = field(default_factory=list)
+    target_cwd: str = ""       # repo path to spawn in (fixes "runs in the wrong tree")
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -82,7 +83,7 @@ class HandoffPacket:
             "source": self.source,
             "classification": {"intent_class": self.intent_class},
             "target_system": self.target_system,
-            "target": {"cli": self.target_cli, "model": self.target_model},
+            "target": {"cli": self.target_cli, "model": self.target_model, "cwd": self.target_cwd},
             "task": self.task,
             "complexity": self.complexity,
             "context": {"relevant_files": self.relevant_files},
@@ -97,31 +98,48 @@ def build_handoff_packet(
     # ONE classification (LLM structured-output when a classifier is injected, else keyword
     # fail-closed). Lazy import breaks the classify<->dispatch cycle.
     from .classify import classify
+    from .sessions import agent_binary, resolve_repo
 
     c = classify(task, llm_call=classifier)
     score, tier = c.complexity, c.approval_tier
-    agent = select_agent(score)
+    agent = select_agent(score)  # cost-band fallback (model + binary by complexity)
+
+    # Prefer the REAL per-repo target from agent-sessions.json when the task names a repo:
+    # spawn that repo's configured agent binary with cwd=its path (correct tree + targeting).
+    repo = resolve_repo(task)
+    if repo:
+        target_system = repo["name"]
+        target_cli = agent_binary(repo.get("agent", "")) or agent.cli
+        target_cwd = repo.get("path", "")
+        relevant_files = [repo["path"]] if repo.get("path") else resolve_relevant_files(task)
+        where = f" in {repo['name']}"
+    else:
+        target_system, target_cli, target_cwd = agent.name, agent.cli, ""
+        relevant_files = resolve_relevant_files(task)
+        where = ""
+
     stamp = (now or datetime.now(UTC)).isoformat()
     if tier == "D":
         spoken = f"Blocked: that's an always-ask action. I will not run \"{task}\" without your explicit go-ahead."
     elif tier == "A":
-        spoken = f"Routing to {agent.name}."
+        spoken = f"Routing to {target_system}{where}."
     else:
-        spoken = f"Routing to {agent.name}, but I'll read it back for your okay first (tier {tier})."
+        spoken = f"Routing to {target_system}{where}, but I'll read it back for your okay first (tier {tier})."
     return HandoffPacket(
         packet_id=str(ulid.new()),
         created_at=stamp,
         source=source,
         intent_class="cli-agent-task",
-        target_system=agent.name,
-        target_cli=agent.cli,
+        target_system=target_system,
+        target_cli=target_cli,
         target_model=agent.model,
         task=task,
         complexity=score,
         approval_required=(tier != "A"),
         approval_tier=tier,
         spoken_update_for_frank=spoken,
-        relevant_files=resolve_relevant_files(task),  # resolve repo names -> abs paths
+        relevant_files=relevant_files,
+        target_cwd=target_cwd,
     )
 
 
@@ -170,11 +188,14 @@ class Dispatcher:
         if len(packet.task) > 2000 or any(ord(c) < 32 and c != "\t" for c in packet.task):
             return False  # reject oversized / control-char payloads
 
+        # Spawn in the target repo's tree (from agent-sessions.json) so the agent sees the right
+        # files — not wherever the sidecar happens to run.
+        cwd = packet.target_cwd if packet.target_cwd and Path(packet.target_cwd).is_dir() else None
         runs_dir = Path(__file__).resolve().parents[3] / "memory" / "voice" / "runs"
         try:
             runs_dir.mkdir(parents=True, exist_ok=True)
             log = open(runs_dir / f"{packet.packet_id}.log", "w", encoding="utf-8")
-            subprocess.Popen([exe, "-p", packet.task], stdout=log, stderr=subprocess.STDOUT, shell=False)
+            subprocess.Popen([exe, "-p", packet.task], stdout=log, stderr=subprocess.STDOUT, shell=False, cwd=cwd)
             return True
         except Exception:
             return False
