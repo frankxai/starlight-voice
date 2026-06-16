@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Starlight Voice — a Jarvis-grade voice operator, open and yours</title>
+    <meta
+      name="description"
+      content="Open reference implementation of a Jarvis-grade personal voice operator: low-latency voice loop, an approval-gated coding-agent fleet, and memory grounding — local-first, MIT-licensed."
+    />
+    <meta name="color-scheme" content="dark" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%236e5cff'/%3E%3Ccircle cx='11' cy='11' r='6' fill='%23fff' opacity='.55'/%3E%3C/svg%3E"
+    />
+    <meta property="og:title" content="Starlight Voice" />
+    <meta property="og:description" content="A Jarvis-grade voice operator — open, local-first, MIT." />
+    <meta property="og:type" content="website" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="tokens.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- scroll progress current -->
+    <div class="scroll-rail" aria-hidden="true"><span id="scrollFill"></span></div>
+
+    <a class="skip" href="#anatomy">Skip to content</a>
+
+    <!-- ───────────────────────── nav ───────────────────────── -->
+    <header class="nav" id="nav">
+      <a class="nav-brand" href="#top" aria-label="Starlight Voice home">
+        <span class="sigil" aria-hidden="true"></span>
+        <span class="nav-word">Starlight&nbsp;Voice</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#anatomy">Anatomy</a>
+        <a href="#fleet">Fleet</a>
+        <a href="#bakeoff">Architecture</a>
+        <a href="#memory">Memory</a>
+        <a href="#open">Open source</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="https://github.com/frankxai/starlight-voice">GitHub</a>
+        <a class="btn btn-solid" href="/dashboard/cockpit.html">Launch console →</a>
+      </div>
+    </header>
+
+    <main id="top">
+      <!-- ─────────────────────── hero ─────────────────────── -->
+      <section class="hero" aria-labelledby="heroH">
+        <canvas class="hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>
+        <div class="hero-inner">
+          <p class="eyebrow reveal">Open reference implementation · MIT</p>
+          <h1 id="heroH" class="reveal">
+            A <em>Jarvis-grade</em> voice operator.<br />
+            Open. Local-first. <span class="grad">Yours.</span>
+          </h1>
+          <p class="lede reveal">
+            Speak. It hears you in under a second, decides what kind of request it is,
+            and either answers — or dispatches the work to the right coding agent in the
+            right repository, behind a safety gate that defaults to <strong>no</strong>.
+          </p>
+          <div class="hero-actions reveal">
+            <a class="btn btn-solid btn-lg" href="/dashboard/cockpit.html">
+              Launch the console <span aria-hidden="true">→</span>
+            </a>
+            <a class="btn btn-ghost btn-lg" href="https://github.com/frankxai/starlight-voice">
+              Read the source
+            </a>
+          </div>
+
+          <dl class="hero-stats reveal" aria-label="Operating targets">
+            <div>
+              <dt>first audio</dt>
+              <dd><span class="count" data-to="800" data-suffix=" ms">0 ms</span></dd>
+              <dd class="stat-note">P50 budget, capture→speech</dd>
+            </div>
+            <div>
+              <dt>approval default</dt>
+              <dd class="mono stat-deny">DENY</dd>
+              <dd class="stat-note">mutating work is gated</dd>
+            </div>
+            <div>
+              <dt>runtime</dt>
+              <dd class="mono">local-first</dd>
+              <dd class="stat-note">cloud providers optional</dd>
+            </div>
+          </dl>
+        </div>
+        <div class="hero-scroll" aria-hidden="true"><span></span>scroll</div>
+      </section>
+
+      <!-- ────────────────── pipeline anatomy ────────────────── -->
+      <section class="band" id="anatomy" aria-labelledby="anatomyH">
+        <div class="band-head reveal">
+          <p class="kicker">The anatomy</p>
+          <h2 id="anatomyH">One utterance, seven stages, under a second.</h2>
+          <p class="band-sub">
+            The voice loop is a single in-process pipeline. Each frame flows left to
+            right; a router stamps every turn with a tier so the slow, expensive stages
+            only run when the request actually needs them.
+          </p>
+        </div>
+
+        <ol class="pipeline reveal" id="pipeline" aria-label="Voice loop stages">
+          <li class="stage" data-stage="1"><span class="dot"></span><b>Capture</b><i>push-to-talk</i></li>
+          <li class="stage" data-stage="2"><span class="dot"></span><b>STT</b><i>Groq Whisper</i></li>
+          <li class="stage" data-stage="3"><span class="dot"></span><b>Router</b><i>tier stamp</i></li>
+          <li class="stage" data-stage="4"><span class="dot"></span><b>Memory</b><i>recall if needed</i></li>
+          <li class="stage" data-stage="5"><span class="dot"></span><b>LLM</b><i>provider-pinned</i></li>
+          <li class="stage" data-stage="6"><span class="dot"></span><b>TTS</b><i>ElevenLabs Flash</i></li>
+          <li class="stage" data-stage="7"><span class="dot"></span><b>Audio</b><i>first sound</i></li>
+        </ol>
+        <p class="pipeline-note reveal">
+          A control phrase short-circuits before the LLM. A simple answer skips memory
+          recall. The expensive path runs only when the tier earns it — that's where the
+          sub-second budget comes from.
+        </p>
+      </section>
+
+      <!-- ─────────────────────── fleet ─────────────────────── -->
+      <section class="band band-alt" id="fleet" aria-labelledby="fleetH">
+        <div class="band-head reveal">
+          <p class="kicker">The fleet</p>
+          <h2 id="fleetH">It doesn't just answer. It dispatches.</h2>
+          <p class="band-sub">
+            When a turn is real work — "refactor the auth module in FrankX" — the operator
+            classifies it, picks the right agent for the right repository from your own
+            <code>agent-sessions.json</code>, and spawns it in the correct tree. Nothing
+            mutating runs until it clears the gate.
+          </p>
+        </div>
+
+        <div class="fleet-grid">
+          <article class="glass tier-card reveal" data-tilt>
+            <span class="tier-badge A">A</span>
+            <h3>Read-only</h3>
+            <p>Provably read-only, no mutation marker. Runs immediately.</p>
+            <code>"show me the diff"</code>
+          </article>
+          <article class="glass tier-card reveal" data-tilt>
+            <span class="tier-badge B">B</span>
+            <h3>Mutating · ack</h3>
+            <p>The default. Read back the resolved command, wait for your okay.</p>
+            <code>"refactor the parser"</code>
+          </article>
+          <article class="glass tier-card reveal" data-tilt>
+            <span class="tier-badge C">C</span>
+            <h3>Substrate</h3>
+            <p>Touches protocol or sovereignty. Escalates to the board.</p>
+            <code>"change the schema"</code>
+          </article>
+          <article class="glass tier-card reveal" data-tilt>
+            <span class="tier-badge D">D</span>
+            <h3>Always-ask</h3>
+            <p>Rotate a key, force-push, drop a table. Hard stop — never auto-runs.</p>
+            <code>"reset --hard"</code>
+          </article>
+        </div>
+        <p class="pipeline-note reveal">
+          The gate is <strong>default-deny</strong>: a request earns Tier A only on a
+          positive read-only signal with no mutation anywhere. Everything else waits for you.
+        </p>
+      </section>
+
+      <!-- ───────────────── architecture bake-off ───────────────── -->
+      <section class="band" id="bakeoff" aria-labelledby="bakeoffH">
+        <div class="band-head reveal">
+          <p class="kicker">No religion, only measurement</p>
+          <h2 id="bakeoffH">Three architectures. Same graph. Swap one block.</h2>
+          <p class="band-sub">
+            The pipeline is engine-agnostic. The component path, OpenAI's speech-to-speech,
+            and Gemini Live all drop into the same graph — so the winner is decided by your
+            hardware and your latency numbers, not by a vendor's slide.
+          </p>
+        </div>
+
+        <div class="lanes-grid">
+          <article class="glass lane-card reveal" data-tilt>
+            <header><h3>Component pipeline</h3><span class="lane-tag">default</span></header>
+            <p>STT → LLM → TTS as discrete, swappable services. Maximum control, every
+              stage observable and independently tunable.</p>
+            <ul class="lane-spec">
+              <li><span>STT</span><b>Groq Whisper</b></li>
+              <li><span>LLM</span><b>provider-pinned</b></li>
+              <li><span>TTS</span><b>ElevenLabs Flash</b></li>
+            </ul>
+          </article>
+          <article class="glass lane-card reveal" data-tilt>
+            <header><h3>OpenAI Realtime</h3><span class="lane-tag">S2S</span></header>
+            <p>One speech-to-speech model replaces the middle three blocks. Fewer hops,
+              tighter turn-taking — measured head-to-head against the component path.</p>
+            <ul class="lane-spec">
+              <li><span>model</span><b>gpt-realtime</b></li>
+              <li><span>hops</span><b>collapsed</b></li>
+              <li><span>graph</span><b>unchanged</b></li>
+            </ul>
+          </article>
+          <article class="glass lane-card reveal" data-tilt>
+            <header><h3>Gemini Live</h3><span class="lane-tag muted">on deck</span></header>
+            <p>A third native S2S lane in the same harness. Slotted behind the same
+              interface, ready to benchmark when the key lands.</p>
+            <ul class="lane-spec">
+              <li><span>model</span><b>gemini-live</b></li>
+              <li><span>status</span><b>scaffolded</b></li>
+              <li><span>graph</span><b>unchanged</b></li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <!-- ─────────────────────── memory ─────────────────────── -->
+      <section class="band band-alt" id="memory" aria-labelledby="memoryH">
+        <div class="band-grid">
+          <div class="band-head reveal">
+            <p class="kicker">It remembers your world</p>
+            <h2 id="memoryH">Grounded in your own context — degrade-first.</h2>
+            <p class="band-sub">
+              Non-trivial turns recall from the Starlight memory gateway over localhost:
+              hybrid retrieval that fuses keyword and semantic search, framed as untrusted
+              context the model reasons over. If the gateway is down, the operator keeps
+              talking — recall degrades, the loop never breaks.
+            </p>
+            <ul class="check-list reveal">
+              <li>RRF hybrid retrieval — keyword + semantic, ranked together</li>
+              <li>Bearer-token auth on a 127.0.0.1-bound gateway</li>
+              <li>Tier-conditioned: simple turns skip the round-trip</li>
+              <li>Fails open to conversation, never to a stall</li>
+            </ul>
+          </div>
+          <aside class="glass recall-demo reveal" aria-hidden="true">
+            <div class="recall-q">“what did we decide about the substrate flip?”</div>
+            <div class="recall-bar"><span></span></div>
+            <ul class="recall-hits">
+              <li><b>strategic-vault</b><i>0.91</i></li>
+              <li><b>operational-vault</b><i>0.84</i></li>
+              <li><b>technical-vault</b><i>0.77</i></li>
+            </ul>
+            <div class="recall-foot">3 atoms · 112 ms · degrade-first</div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ─────────────────────── open ─────────────────────── -->
+      <section class="band cta-band" id="open" aria-labelledby="openH">
+        <div class="cta-inner reveal">
+          <p class="kicker">Open source</p>
+          <h2 id="openH">Clone it. Read every line. Make it yours.</h2>
+          <p class="band-sub center">
+            Starlight Voice is an honest reference implementation — portable, CI-green on
+            Linux and Windows, MIT-licensed. Not a finished product you rent; a substrate
+            you own and extend.
+          </p>
+          <div class="code-block glass" role="figure" aria-label="Install commands">
+            <span class="code-dots"><i></i><i></i><i></i></span>
+            <pre><code><span class="c">git</span> clone https://github.com/frankxai/starlight-voice
+<span class="c">cd</span> starlight-voice
+<span class="c">pip</span> install -e "./sidecar[providers,dev]"
+<span class="c">python</span> -m starlight_voice doctor   <span class="cm"># check readiness</span></code></pre>
+          </div>
+          <div class="hero-actions center">
+            <a class="btn btn-solid btn-lg" href="https://github.com/frankxai/starlight-voice">View on GitHub</a>
+            <a class="btn btn-ghost btn-lg" href="/dashboard/cockpit.html">Open the console</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-foot">
+      <span class="sigil sm" aria-hidden="true"></span>
+      <span>Starlight Voice</span>
+      <span class="sep" aria-hidden="true">·</span>
+      <span>Built on SIP</span>
+      <span class="sep" aria-hidden="true">·</span>
+      <span>MIT</span>
+      <span class="foot-spring"></span>
+      <a href="https://github.com/frankxai/starlight-voice">github.com/frankxai/starlight-voice</a>
+    </footer>
+
+    <script src="motion.js" defer></script>
+  </body>
+</html>

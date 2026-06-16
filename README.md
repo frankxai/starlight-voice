@@ -16,6 +16,7 @@ What exists today:
 - machine doctor for installed tools and readiness
 - cognition router for fast, deliberation, browser, CLI-agent, and control paths
 - browser automation adapter seam with safe dry-run mode
+- public landing site (`site/`) and a live operator console (`dashboard/`) sharing one design system
 - benchmark smoke scripts and GitHub Actions CI
 - committed `Cargo.lock` for reproducible builds
 - first-principles spec at `docs/SPEC.md`
@@ -79,6 +80,29 @@ python -m starlight_voice doctor
 python -m starlight_voice say "open browser and search the docs"
 python -m starlight_voice browser "open the Pipecat docs"
 ```
+
+## Web surfaces
+
+Starlight Voice ships two browser surfaces that share one set of design tokens
+(`site/tokens.css` — the single source of truth):
+
+- **Landing site** (`site/`) — a self-contained HTML5 + motion product page. No
+  build step, no node toolchain; deploys to any static host (Vercel, GitHub Pages).
+- **Operator console** (`dashboard/`) — a live status console that polls `/status`
+  from the Python sidecar: voice-loop config, the architecture bake-off lanes,
+  memory-gateway liveness, the dispatch ledger, and adapter availability.
+
+Run both from one localhost origin (the server uses a fail-closed allowlist, so
+only the landing, console, and JSON endpoints are exposed — never repo internals):
+
+```powershell
+$env:PYTHONPATH = "sidecar/src"
+python dashboard/server.py
+# landing  -> http://127.0.0.1:8765/
+# console  -> http://127.0.0.1:8765/dashboard/cockpit.html
+```
+
+To deploy just the landing site statically, publish the `site/` directory as-is.
 
 ## Configuration
 

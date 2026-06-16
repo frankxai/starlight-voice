@@ -76,3 +76,26 @@ def test_unknown_post_route_404(live_server) -> None:
     with pytest.raises(urllib.error.HTTPError) as exc:
         urllib.request.urlopen(req, timeout=5)
     assert exc.value.code == 404
+
+
+def test_root_serves_landing(live_server) -> None:
+    resp = urllib.request.urlopen(live_server + "/", timeout=5)
+    body = resp.read().decode("utf-8")
+    assert resp.headers["content-type"].startswith("text/html")
+    assert "Starlight Voice" in body and "Launch the console" in body
+
+
+def test_console_and_shared_tokens_served(live_server) -> None:
+    console = urllib.request.urlopen(live_server + "/dashboard/cockpit.html", timeout=5)
+    assert "Operator Console" in console.read().decode("utf-8")
+    tokens = urllib.request.urlopen(live_server + "/tokens.css", timeout=5)
+    assert tokens.headers["content-type"].startswith("text/css")
+    assert "--voltage" in tokens.read().decode("utf-8")  # the single source of truth
+
+
+@pytest.mark.parametrize("bad", ["/server.py", "/.git/config", "/sidecar/pyproject.toml", "/../site/tokens.css"])
+def test_disallowed_get_is_fail_closed_404(live_server, bad) -> None:
+    # The allowlist must refuse anything not explicitly served — no repo source leaks.
+    with pytest.raises(urllib.error.HTTPError) as exc:
+        urllib.request.urlopen(live_server + bad, timeout=5)
+    assert exc.value.code == 404

@@ -3,25 +3,34 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Starlight Voice — Operator Cockpit</title>
+    <title>Starlight Voice — Operator Console</title>
+    <meta name="color-scheme" content="dark" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%236e5cff'/%3E%3Ccircle cx='11' cy='11' r='6' fill='%23fff' opacity='.55'/%3E%3C/svg%3E"
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
+    <!-- shared design tokens (single source of truth) THEN console styles -->
+    <link rel="stylesheet" href="/tokens.css" />
     <link rel="stylesheet" href="./cockpit.css" />
   </head>
   <body>
-    <main class="cockpit" aria-label="Starlight Voice operator cockpit">
-      <header class="topbar">
+    <main class="cockpit" aria-label="Starlight Voice operator console">
+      <header class="topbar glass">
         <div class="brand">
+          <a class="back" href="/" aria-label="Back to Starlight Voice site">←</a>
           <span class="sigil" aria-hidden="true"></span>
           <div>
             <p class="eyebrow">Starlight Voice</p>
-            <h1>Operator Cockpit</h1>
+            <h1>Operator Console</h1>
           </div>
         </div>
+        <canvas class="topwave" id="topwave" aria-hidden="true"></canvas>
         <div class="live" id="liveState" role="status" aria-live="polite">
           <span class="dot" aria-hidden="true"></span><span id="liveLabel">connecting…</span>
         </div>
@@ -58,6 +67,7 @@
 
       <footer class="foot">
         <span>Built on SIP</span><span aria-hidden="true">·</span>
+        <a href="/" class="foot-link">starlight voice</a><span aria-hidden="true">·</span>
         <span id="err" class="err"></span>
       </footer>
     </main>
