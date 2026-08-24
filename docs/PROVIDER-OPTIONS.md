@@ -1,5 +1,7 @@
 # Provider Options
 
+> **Current decision (2026-08-24):** This exploratory matrix is retained as implementation history. The accepted portfolio decision is [Voice Provider Architecture Decision — 2026-08-24](https://github.com/frankxai/Starlight-Intelligence-System/blob/main/docs/specs/2026-08-24-voice-provider-architecture-decision.md): Grok native realtime primary, OpenAI Realtime fallback/economy lane, ElevenLabs canonical voice-production and character layer.
+
 Starlight Voice should not bet the whole product on one provider. The best architecture is a local shell and sidecar with provider lanes.
 
 ## Recommended Shape
