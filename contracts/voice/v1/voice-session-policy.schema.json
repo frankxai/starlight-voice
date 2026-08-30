@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starlightintelligence.org/schemas/voice/v1/voice-session-policy.schema.json",
+  "title": "VoiceSessionPolicy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sessionId",
+    "provider",
+    "model",
+    "surface",
+    "mode",
+    "authenticated",
+    "allowedTools",
+    "authority",
+    "transcript",
+    "memoryProjection",
+    "budget",
+    "locale"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "voice.session-policy.v1"
+    },
+    "sessionId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "userId": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "surface": {
+      "enum": [
+        "browser",
+        "mobile-pwa",
+        "desktop-ptt",
+        "sip",
+        "test"
+      ]
+    },
+    "mode": {
+      "enum": [
+        "native-speech-to-speech",
+        "chained-transcript-first"
+      ]
+    },
+    "authenticated": {
+      "type": "boolean"
+    },
+    "locale": {
+      "type": "string",
+      "minLength": 2
+    },
+    "allowedTools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "read",
+        "writeMode",
+        "approvalPolicyRef"
+      ],
+      "properties": {
+        "read": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "writeMode": {
+          "enum": [
+            "none",
+            "dispatch-only",
+            "approval-record-only",
+            "dispatch-and-approval-record"
+          ]
+        },
+        "approvalPolicyRef": {
+          "type": "string"
+        },
+        "denyPrivateMemory": {
+          "const": true
+        }
+      }
+    },
+    "transcript": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "durableSummary",
+        "storeRawTranscript",
+        "storeRawAudio",
+        "purpose",
+        "retentionDays"
+      ],
+      "properties": {
+        "durableSummary": {
+          "type": "boolean"
+        },
+        "storeRawTranscript": {
+          "type": "boolean"
+        },
+        "storeRawAudio": {
+          "type": "boolean"
+        },
+        "purpose": {
+          "enum": [
+            "operator",
+            "benchmark",
+            "oral-history",
+            "support",
+            "content-production",
+            "ephemeral"
+          ]
+        },
+        "retentionDays": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "consentRef": {
+          "type": "string"
+        }
+      }
+    },
+    "memoryProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "endpoint",
+        "mode",
+        "maxItems"
+      ],
+      "properties": {
+        "endpoint": {
+          "type": "string"
+        },
+        "mode": {
+          "const": "signed-read-only-summary"
+        },
+        "maxItems": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "allowedClasses": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "public",
+              "internal",
+              "confidential-redacted"
+            ]
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxMinutes",
+        "maxCostUsd",
+        "maxToolCalls"
+      ],
+      "properties": {
+        "maxMinutes": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "maxCostUsd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "maxToolCalls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxDispatches": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
