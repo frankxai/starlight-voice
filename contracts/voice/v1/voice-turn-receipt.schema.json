@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starlightintelligence.org/schemas/voice/v1/voice-turn-receipt.schema.json",
+  "title": "VoiceTurnReceipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sessionId",
+    "turnId",
+    "provider",
+    "model",
+    "surface",
+    "startedAt",
+    "finishedAt",
+    "timing",
+    "toolCalls",
+    "approvals",
+    "outcome",
+    "cost"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "voice.turn-receipt.v1"
+    },
+    "sessionId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "turnId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "provider": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "surface": {
+      "enum": [
+        "browser",
+        "mobile-pwa",
+        "desktop-ptt",
+        "sip",
+        "test"
+      ]
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "finishedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "inputTranscriptHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "outputTranscriptHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "firstPlayableAudioMs",
+        "totalTurnMs"
+      ],
+      "properties": {
+        "speechEndToRequestMs": {
+          "type": "number",
+          "minimum": 0
+        },
+        "firstPlayableAudioMs": {
+          "type": "number",
+          "minimum": 0
+        },
+        "totalTurnMs": {
+          "type": "number",
+          "minimum": 0
+        },
+        "interrupted": {
+          "type": "boolean"
+        },
+        "interruptionRecoveryMs": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "toolCalls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "argumentsHash",
+          "result"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "argumentsHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "result": {
+            "enum": [
+              "success",
+              "failure",
+              "denied",
+              "approval-requested"
+            ]
+          },
+          "latencyMs": {
+            "type": "number",
+            "minimum": 0
+          },
+          "taskId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receiptRef": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "approvals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "policyRef",
+          "decision"
+        ],
+        "properties": {
+          "policyRef": {
+            "type": "string"
+          },
+          "decision": {
+            "enum": [
+              "not-required",
+              "requested",
+              "approved",
+              "rejected",
+              "expired"
+            ]
+          },
+          "approvalRef": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "toolSelectionCorrect",
+        "privacyCompliant",
+        "approvalCompliant"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "completed",
+            "interrupted",
+            "failed",
+            "blocked",
+            "dispatched"
+          ]
+        },
+        "toolSelectionCorrect": {
+          "type": "boolean"
+        },
+        "exactEntityCapture": {
+          "type": "boolean"
+        },
+        "privacyCompliant": {
+          "type": "boolean"
+        },
+        "approvalCompliant": {
+          "type": "boolean"
+        },
+        "evaluatorNotes": {
+          "type": "string"
+        }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "estimatedUsd"
+      ],
+      "properties": {
+        "estimatedUsd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "audioInputSeconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "audioOutputSeconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "textInputTokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "textOutputTokens": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}
