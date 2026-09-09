@@ -41,7 +41,7 @@ def test_provider_pin_lands_on_the_service_not_just_settings_string() -> None:
     svc = _llm_service(Settings.from_env())
     extra = getattr(svc._settings, "extra", {}) or {}
     assert extra.get("provider", {}).get("order") == ["cerebras"]
-    assert extra["provider"]["allow_fallbacks"] is False  # no transcript egress on near-miss
+    assert extra["provider"]["allow_fallbacks"] is True  # Cerebras first, but degrade on a live 429 vs killing the turn
 
 
 def test_should_recall_skips_fast_tier_protects_sla() -> None:

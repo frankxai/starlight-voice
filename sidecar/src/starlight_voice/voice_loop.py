@@ -40,13 +40,14 @@ def _llm_service(settings: Settings):
     without it OpenRouter may route to a 600ms+ TTFT provider and silently break the SLA.
 
     Uses the canonical `settings=` API (the old `params=`/InputParams path silently DROPPED
-    the pin — review wf_a9484479 reproduced svc._settings.extra == {}). allow_fallbacks=False:
-    the voice tier must NOT egress transcripts to an arbitrary slow upstream on a near-miss.
-    Fails LOUD at build if the pin didn't land — never ship the SLA feature as a silent no-op.
+    the pin — review wf_a9484479 reproduced svc._settings.extra == {}). allow_fallbacks=True:
+    Cerebras stays FIRST for the sub-200ms TTFT win, but a live 429 (Cerebras is rate-limited
+    upstream — observed 2026-06-26) must degrade to the next provider, not kill the turn. A
+    silent dead loop is worse than a one-off slower reply. Fails LOUD if the pin didn't land.
     """
     from pipecat.services.openrouter.llm import OpenRouterLLMService
 
-    provider = {"order": [settings.llm_fast_provider], "allow_fallbacks": False}
+    provider = {"order": [settings.llm_fast_provider], "allow_fallbacks": True}
     svc = OpenRouterLLMService(
         api_key=os.environ.get("OPENROUTER_API_KEY"),
         settings=OpenRouterLLMService.Settings(model=settings.llm_model, extra={"provider": provider}),

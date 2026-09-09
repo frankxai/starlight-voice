@@ -1,0 +1,156 @@
+{
+  "schema": "c940-wip-preservation/v1",
+  "repository": "starlight-voice",
+  "created_utc": "2026-09-09T19:33:59.290350+00:00",
+  "source_head": "8375785a9e5966352b14d0f5cccb79c73e7aa5c9",
+  "safe_remote_ancestor": "8375785a9e5966352b14d0f5cccb79c73e7aa5c9",
+  "status": "WIP-not-approved-for-integration",
+  "files": [
+    {
+      "path": "Cargo.lock",
+      "bytes": 118671,
+      "sha256": "8eb464750935a19967cb09d6b7accac2922505fc09f360dae973b95d1bc41725"
+    },
+    {
+      "path": "dashboard/cockpit.html",
+      "bytes": 3246,
+      "sha256": "1e593abf99cea3b7274cb322cd80cbdbc580d3a17606b136aa7a321e27f1e770"
+    },
+    {
+      "path": "dashboard/server.py",
+      "bytes": 5924,
+      "sha256": "fe7336c5e13ae070407bf5ec971c99ffe8bbec099ee2b9226a85b3ffbf8d0ec2"
+    },
+    {
+      "path": "scripts/open-dashboard.ps1",
+      "bytes": 1627,
+      "sha256": "dc42036cd80f07f4b64e002645eb4682bc3af33d63f16ed8553748b66e97406f"
+    },
+    {
+      "path": "sidecar/src/starlight_voice/__main__.py",
+      "bytes": 7265,
+      "sha256": "db9a1b980f0eed33c377e718baeac5c37075e9d08ede8ef2a9216b26cfa11af3"
+    },
+    {
+      "path": "sidecar/src/starlight_voice/browser.py",
+      "bytes": 6664,
+      "sha256": "72eb87fe249666502723260a8280239cebeb48e0730d025a7f41379625d8bf47"
+    },
+    {
+      "path": "sidecar/src/starlight_voice/environment.py",
+      "bytes": 4918,
+      "sha256": "c69bd9a1ece16956b7e1a2b345c4d360e8a7970616b08760617be3be5b32d3c1"
+    },
+    {
+      "path": "sidecar/src/starlight_voice/pipeline.py",
+      "bytes": 3584,
+      "sha256": "1ecf8b7a2b205f2604edbc33b357f874e17d15179083d743ba544a9cf8410544"
+    },
+    {
+      "path": "sidecar/src/starlight_voice/proactive/analyzer.py",
+      "bytes": 6358,
+      "sha256": "a1a189badf8bdd111f4846fb380e628a0b6e50f6d41edb2ec2ee23d49a71f711"
+    },
+    {
+      "path": "sidecar/src/starlight_voice/voice_loop.py",
+      "bytes": 9903,
+      "sha256": "75992f72165f6b8321fa705664888dc08b460d3db6f723de3eec75ae7ad3af7c"
+    },
+    {
+      "path": "sidecar/src/starlight_voice/activation/__init__.py",
+      "bytes": 583,
+      "sha256": "8ef6222d3797daee4a89e6a4a53c5ac8addb8d48d53f50f8f12f3bc423c31f2e"
+    },
+    {
+      "path": "sidecar/src/starlight_voice/activation/clap.py",
+      "bytes": 6890,
+      "sha256": "0792182b9c3bae629a016d0e3f6db22f5915d0c13696a588494c5503146cfad9"
+    },
+    {
+      "path": "sidecar/src/starlight_voice/cognition/answer.py",
+      "bytes": 4806,
+      "sha256": "a7512e07ed3aaccb4a17da5bfade8faebf28f2a01a5a3266555977836a300633"
+    },
+    {
+      "path": "sidecar/tests/conftest.py",
+      "bytes": 579,
+      "sha256": "eabefab4dc70eed09ed25fbaf934b212059f96699de5302e55d08650bcd1b7d4"
+    },
+    {
+      "path": "sidecar/tests/test_browser.py",
+      "bytes": 2173,
+      "sha256": "ad4d57a547d11f4d39be3f9a3ed210ecf7ba1b5ce2d82cab0a6ea043e57c9ecd"
+    },
+    {
+      "path": "sidecar/tests/test_pipeline.py",
+      "bytes": 1105,
+      "sha256": "80d79c41bdde9f16d304f4a053aced2ec40c4c42d46f0a402e4744de46422eea"
+    },
+    {
+      "path": "sidecar/tests/test_proactive.py",
+      "bytes": 2934,
+      "sha256": "ce0c85a2e570bd44795ff00c8333faa430908147906b7c1c6e05987670e67709"
+    },
+    {
+      "path": "sidecar/tests/test_voice_loop.py",
+      "bytes": 2198,
+      "sha256": "d468c1f44c6c6a5fe218430c80c2e771daa4d2fbb7dc5ca7cd32ce518e9c2fcf"
+    },
+    {
+      "path": "sidecar/tests/test_answer.py",
+      "bytes": 2020,
+      "sha256": "602344c197ad409de2d1e5fc2d796ab964837e704083afaebd5dddc6f402bc92"
+    },
+    {
+      "path": "sidecar/tests/test_clap.py",
+      "bytes": 1951,
+      "sha256": "4cc8f083d8236424bfe1529dda473e823463ac7c5e350ec6a8f96ce725192f37"
+    },
+    {
+      "path": "site/index.html",
+      "bytes": 14973,
+      "sha256": "1c1b182b98d3f03afbdce5057c2a7e61c4b155434aae2a7afcaec88c97cceb6f"
+    },
+    {
+      "path": "site/motion.js",
+      "bytes": 4551,
+      "sha256": "c20a2b796d3fe9c19820578bc4dcb9a1021df59d3f6ea7c53ec4c39a6c75c808"
+    },
+    {
+      "path": "site/styles.css",
+      "bytes": 20191,
+      "sha256": "9657b367c8f8998a9226c7a1b4350d54917016b14cf735c65966d34259311168"
+    },
+    {
+      "path": "site/tokens.css",
+      "bytes": 3252,
+      "sha256": "f9b78acff46bbdc67003c2bb0de0435e3ff52f676283192f69abfc2b90c0879b"
+    },
+    {
+      "path": "site/neural.js",
+      "bytes": 13530,
+      "sha256": "25e332f920d7bed23b0b0d1976d37d3ab0cbef0401cfb812fe685f70fd054fdb"
+    },
+    {
+      "path": "tauri/Cargo.toml",
+      "bytes": 629,
+      "sha256": "85bf1a752d47b33d4b80ede974d5155b2978431ef8678feb4ed1549a2a570bd3"
+    },
+    {
+      "path": "tauri/src/main.rs",
+      "bytes": 4788,
+      "sha256": "2f8dc330cb30359445a9b2265f1a2060a6ac4230e5f1c243d2f8a1db70680a29"
+    },
+    {
+      "path": "tauri/src/sidecar.rs",
+      "bytes": 4962,
+      "sha256": "24132e3f68b4579229b01213cf3134ab0b8608d7a504267abd16a69a66d54e83"
+    }
+  ],
+  "restrictions": [
+    "No automatic merge/deploy/runtime activation",
+    "Known defects recorded in private tracker v2 handoff",
+    "Private local ancestry deliberately excluded",
+    "Other pending paths and private data remain separate recovery work"
+  ]
+}
