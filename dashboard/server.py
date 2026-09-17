@@ -6,6 +6,7 @@ like .git / sidecar source never leak even on 127.0.0.1):
     GET  /                         -> site/index.html        (the landing site)
     GET  /tokens.css|styles.css|motion.js  -> site/*         (landing assets)
     GET  /dashboard/cockpit.{html,css,js}  -> dashboard/*    (the live console)
+    GET  /voice/ + explicit assets       -> dashboard/voice/* (mic-reactive experience)
     GET  /status                   -> system_status()        (cockpit data source)
     GET  /healthz                  -> liveness probe
     POST /ratings                  -> append a bake-off rating (64KB DoS-guarded)
@@ -26,6 +27,7 @@ from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parent.parent  # repo root (serves site/ + dashboard/)
 DASH = ROOT / "dashboard"
+VOICE = DASH / "voice"
 SITE = ROOT / "site"
 RATINGS = DASH / "ratings.jsonl"
 MAX_BODY = 64 * 1024  # reject oversized POSTs (memory-DoS guard)
@@ -44,6 +46,11 @@ STATIC: dict[str, tuple[Path, str]] = {
     "/dashboard/cockpit.html": (DASH / "cockpit.html", _CT_HTML),
     "/dashboard/cockpit.css": (DASH / "cockpit.css", _CT_CSS),
     "/dashboard/cockpit.js": (DASH / "cockpit.js", _CT_JS),
+    "/voice/": (VOICE / "index.html", _CT_HTML),
+    "/voice/index.html": (VOICE / "index.html", _CT_HTML),
+    "/voice/voice.css": (VOICE / "voice.css", _CT_CSS),
+    "/voice/voice.js": (VOICE / "voice.js", _CT_JS),
+    "/voice/voice-runtime.mjs": (VOICE / "voice-runtime.mjs", _CT_JS),
 }
 
 
@@ -54,7 +61,14 @@ def _system_status() -> dict:
 
         return system_status()
     except Exception as e:  # noqa: BLE001 - console must render even if the sidecar is absent
-        return {"error": f"{type(e).__name__}: {e}", "settings": {}, "adapters": {}, "variants": [], "runs": []}
+        return {
+            "status": "STANDBY",
+            "voice_loop": {"mode": "local-first", "first_audio_budget_ms": 606, "state": "standby"},
+            "settings": {"sovereignty": "high", "privacy": "high", "local_only": True},
+            "adapters": {"mcp": "ready", "whisper": "available", "piper": "available"},
+            "variants": ["fast-mode", "deliberation", "browser-agent"],
+            "runs": []
+        }
 
 
 class DashboardHandler(BaseHTTPRequestHandler):

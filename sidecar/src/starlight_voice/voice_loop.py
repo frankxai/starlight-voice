@@ -70,6 +70,15 @@ def _tts_service(settings: Settings):
     return ElevenLabsTTSService(**kwargs)
 
 
+def _local_audio_transport():
+    """Create the only admitted local mic/speaker transport: 48 kHz mono PCM16."""
+    from pipecat.transports.local.audio import LocalAudioTransport, LocalAudioTransportParams
+
+    from .audio_contract import canonical_transport_kwargs
+
+    return LocalAudioTransport(LocalAudioTransportParams(**canonical_transport_kwargs()))
+
+
 def _router_processor():
     """A FrameProcessor that tags each final transcript with its CognitionRouter tier.
 
@@ -101,12 +110,28 @@ def should_recall(route_tier: str | None) -> bool:
     return route_tier != RouteTier.FAST.value
 
 
-def _memory_processor(context):
-    """FrameProcessor that grounds each non-FAST turn with SIS memory recall (degrade-first).
+def with_reference_context(metadata: dict | None, block: str) -> dict:
+    """Attach retrieved material as explicitly untrusted metadata, never as a conversation role.
 
-    Reads the route_tier the RouterProcessor stamped, queries the gateway with a hard timeout,
-    and injects results as an UNTRUSTED system message into the shared LLMContext for the turn.
-    A dead/missing gateway -> empty recall -> the turn proceeds context-less (never stalls).
+    The current Pipecat provider lane does not yet expose a typed retrieval input. Keeping the
+    payload on the transcription frame preserves the role boundary until a structured adapter
+    can admit it as a tool/reference result. Policy remains system-only and speech user-only.
+    """
+    return {
+        **(metadata or {}),
+        "reference_context": {
+            "content": block,
+            "trust": "untrusted",
+            "source": "sis-memory",
+        },
+    }
+
+
+def _memory_processor():
+    """Attach SIS recall to non-FAST turns as untrusted reference metadata.
+
+    This deliberately does not inject recall into the LLM system or user roles. A dead/missing
+    gateway produces no reference block and the turn proceeds context-less without stalling.
     """
     from pipecat.frames.frames import TranscriptionFrame
     from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
@@ -123,7 +148,7 @@ def _memory_processor(context):
                 if should_recall(tier) and client.available():
                     block = client.as_context_block(frame.text)
                     if block:
-                        context.add_message({"role": "system", "content": block})
+                        frame.metadata = with_reference_context(getattr(frame, "metadata", {}), block)
             await self.push_frame(frame, direction)
 
     return MemoryContextProcessor()
@@ -161,15 +186,13 @@ def build_graph(settings: Settings | None = None, *, with_transport: bool):
         }]
     )
     pair = LLMContextAggregatorPair(context)
-    memory_proc = _memory_processor(context)  # grounds non-FAST turns from SIS memory (degrade-first)
+    memory_proc = _memory_processor()  # keeps SIS recall as untrusted reference metadata
 
     transport = None
     head: list = []
     tail: list = []
     if with_transport:
-        from pipecat.transports.local.audio import LocalAudioTransport, LocalAudioTransportParams
-
-        transport = LocalAudioTransport(LocalAudioTransportParams(audio_in_enabled=True, audio_out_enabled=True))
+        transport = _local_audio_transport()
         head = [transport.input()]
         tail = [transport.output()]
 

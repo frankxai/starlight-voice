@@ -68,7 +68,7 @@ def _assemble(variant: str, settings: Settings, *, with_transport: bool):
     from pipecat.processors.aggregators.llm_context import LLMContext
     from pipecat.processors.aggregators.llm_response_universal import LLMContextAggregatorPair
 
-    from .voice_loop import _router_processor
+    from .voice_loop import _local_audio_transport, _router_processor
 
     context = LLMContext(messages=[{"role": "system", "content": _SYSTEM}])
     pair = LLMContextAggregatorPair(context)
@@ -85,8 +85,7 @@ def _assemble(variant: str, settings: Settings, *, with_transport: bool):
 
     head, tail = [], []
     if with_transport:
-        from pipecat.transports.local.audio import LocalAudioTransport, LocalAudioTransportParams
-        t = LocalAudioTransport(LocalAudioTransportParams(audio_in_enabled=True, audio_out_enabled=True))
+        t = _local_audio_transport()
         head, tail = [t.input()], [t.output()]
     # S2S replaces STT+LLM+TTS; router still observes tier
     return Pipeline([*head, _router_processor(), pair.user(), s2s, *tail, pair.assistant()])

@@ -16,7 +16,7 @@ What exists today:
 - machine doctor for installed tools and readiness
 - cognition router for fast, deliberation, browser, CLI-agent, and control paths
 - browser automation adapter seam with safe dry-run mode
-- public landing site (`site/`) and a live operator console (`dashboard/`) sharing one design system
+- public landing site (`site/`), mic-reactive voice experience (`dashboard/voice/`), and live operator console (`dashboard/`) sharing one design system
 - benchmark smoke scripts and GitHub Actions CI
 - committed `Cargo.lock` for reproducible builds
 - first-principles spec at `docs/SPEC.md`
@@ -44,8 +44,8 @@ Prerequisites:
 Clone and build:
 
 ```powershell
-git clone https://github.com/frankxai/starlight-voice.git C:\Users\frank\starlight-voice
-cd C:\Users\frank\starlight-voice
+git clone https://github.com/frankxai/starlight-voice.git C:\Users\frank\starlight\repos\starlight-voice
+cd C:\Users\frank\starlight\repos\starlight-voice
 cargo build --release -p starlight-voice-tauri
 ```
 
@@ -83,11 +83,14 @@ python -m starlight_voice browser "open the Pipecat docs"
 
 ## Web surfaces
 
-Starlight Voice ships two browser surfaces that share one set of design tokens
+Starlight Voice ships three browser surfaces that share one set of design tokens
 (`site/tokens.css` — the single source of truth):
 
 - **Landing site** (`site/`) — a self-contained HTML5 + motion product page. No
   build step, no node toolchain; deploys to any static host (Vercel, GitHub Pages).
+- **Voice experience** (`dashboard/voice/`) — a user-initiated microphone surface
+  with a real local level signal, deterministic guided-turn states, keyboard PTT,
+  interruption, reduced-motion behavior, and explicit provider-truth labels.
 - **Operator console** (`dashboard/`) — a live status console that polls `/status`
   from the Python sidecar: voice-loop config, the architecture bake-off lanes,
   memory-gateway liveness, the dispatch ledger, and adapter availability.
@@ -99,6 +102,7 @@ only the landing, console, and JSON endpoints are exposed — never repo interna
 $env:PYTHONPATH = "sidecar/src"
 python dashboard/server.py
 # landing  -> http://127.0.0.1:8765/
+# voice    -> http://127.0.0.1:8765/voice/
 # console  -> http://127.0.0.1:8765/dashboard/cockpit.html
 ```
 
@@ -125,6 +129,8 @@ Useful docs:
 - `docs/CAPABILITIES.md` — what is real now versus planned
 - `docs/FLOWS.md` — the target Jarvis-grade flows
 - `docs/ARCHITECTURE.md` — engineering architecture
+- `docs/PERPLEXITY_VOICE_IMPLEMENTATION_2026-07-18.md` — verified July 2026 reference evidence
+- `docs/VOICE_EXPERIENCE_SCENE_BRIEF.md` — interaction, audio, motion, and QA contract
 - `docs/SECRETS.md` — provider key setup and secret strategy
 
 ## Roadmap

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#090910" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>Starlight Voice — Live Signal</title>
+    <link rel="stylesheet" href="/tokens.css" />
+    <link rel="stylesheet" href="/voice/voice.css" />
+  </head>
+  <body>
+    <main class="voice-shell" id="voiceShell" data-state="ready">
+      <header class="voice-nav" aria-label="Voice experience navigation">
+        <a class="brand-mark" href="/" aria-label="Back to Starlight Voice home">
+          <span class="brand-sigil" aria-hidden="true"></span>
+          <span><strong>Starlight</strong><small>Voice</small></span>
+        </a>
+        <div class="session-facts" aria-label="Session facts">
+          <span class="session-dot" aria-hidden="true"></span>
+          <span id="sessionFact">Local surface</span>
+          <span class="fact-divider" aria-hidden="true"></span>
+          <span id="captureFormat">Capture not measured</span>
+        </div>
+        <a class="console-link" href="/dashboard/cockpit.html">Operator console <span aria-hidden="true">↗</span></a>
+      </header>
+
+      <section class="voice-layout" aria-labelledby="voiceTitle">
+        <div class="voice-stage">
+          <div class="stage-copy">
+            <p class="eyebrow"><span>Signal 01</span><span class="eyebrow-rule"></span><span id="modeLabel">Ready</span></p>
+            <h1 id="voiceTitle">Ready when you are.</h1>
+            <p class="stage-description" id="stateDescription">
+              A user-initiated voice surface for directing Starlight. Your microphone stays local in this experience.
+            </p>
+          </div>
+
+          <div class="signal-field" id="signalField">
+            <div class="coordinate coordinate-a" aria-hidden="true">CANONICAL · 48.000 kHz</div>
+            <div class="coordinate coordinate-b" aria-hidden="true">ANALYSIS · FLOAT</div>
+            <div class="signal-horizon" aria-hidden="true"></div>
+            <canvas id="signalCore" class="signal-core" aria-hidden="true"></canvas>
+            <div class="core-label" aria-hidden="true">
+              <span class="core-glyph" id="coreGlyph">S</span>
+              <span class="core-state" id="coreState">READY</span>
+            </div>
+            <p class="sr-only" id="visualEquivalent">
+              Starlight Voice is ready. Microphone capture is off.
+            </p>
+          </div>
+
+          <div class="transcript-panel" aria-label="Current turn">
+            <div>
+              <span class="transcript-kicker" id="transcriptKicker">Awaiting signal</span>
+              <p class="transcript" id="transcript">Press Start listening or run the clearly labelled guided turn.</p>
+            </div>
+            <div class="level-readout" aria-label="Microphone level">
+              <span id="levelDb">−96 dB</span>
+              <span class="level-track" aria-hidden="true"><span id="levelFill"></span></span>
+            </div>
+          </div>
+
+          <div class="voice-controls" aria-label="Voice controls">
+            <button class="primary-control" id="listenButton" type="button">
+              <span class="control-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false"><path d="M12 15.25a4 4 0 0 0 4-4V6a4 4 0 1 0-8 0v5.25a4 4 0 0 0 4 4Zm-6-4a6 6 0 0 0 12 0M12 17.25V21M9 21h6" /></svg>
+              </span>
+              <span id="listenLabel">Start listening</span>
+            </button>
+            <button class="secondary-control" id="guidedButton" type="button">Run guided turn</button>
+            <button class="interrupt-control" id="interruptButton" type="button" disabled>Interrupt <kbd>Esc</kbd></button>
+          </div>
+          <p class="privacy-line"><span aria-hidden="true">⌁</span> No microphone access until you choose it. No audio upload in local-signal mode.</p>
+        </div>
+
+        <aside class="evidence-rail" aria-label="Voice session evidence">
+          <section class="rail-section live-trace" aria-labelledby="traceTitle">
+            <div class="rail-heading">
+              <p class="rail-kicker">Live turn</p>
+              <span class="local-badge" id="transportBadge">LOCAL</span>
+            </div>
+            <h2 id="traceTitle">State trace</h2>
+            <ol class="trace-list" id="traceList" aria-live="polite">
+              <li><span class="trace-node current" aria-hidden="true"></span><div><strong>Ready</strong><small>Local surface initialized</small></div><time>now</time></li>
+            </ol>
+          </section>
+
+          <section class="rail-section contract-section" aria-labelledby="contractTitle">
+            <p class="rail-kicker">Canonical transport boundary</p>
+            <h2 id="contractTitle">Audio contract</h2>
+            <dl class="contract-list">
+              <div><dt>Sample rate</dt><dd>48,000 Hz</dd></div>
+              <div><dt>Channels</dt><dd>1 · mono</dd></div>
+              <div><dt>Encoding</dt><dd>PCM16 LE</dd></div>
+              <div><dt>Transport</dt><dd>WebRTC benchmark</dd></div>
+              <div><dt>Voice lock</dt><dd>Deferred · PTT floor</dd></div>
+            </dl>
+            <p class="contract-note" id="captureDetail">
+              Capture format is measured after permission. The transport boundary is not active in this local surface.
+            </p>
+          </section>
+
+          <section class="rail-section architecture-section" aria-labelledby="architectureTitle">
+            <p class="rail-kicker">Selected architecture</p>
+            <h2 id="architectureTitle">Component first. Realtime benchmark.</h2>
+            <p>
+              The existing Groq → OpenRouter → ElevenLabs Pipecat lane is the controlled MVR. OpenAI Realtime remains the evidence-backed benchmark until it wins measured interruption, latency and tool-safety gates.
+            </p>
+            <a href="/dashboard/cockpit.html">Inspect the architecture bake-off <span aria-hidden="true">→</span></a>
+          </section>
+        </aside>
+      </section>
+
+      <footer class="voice-footer">
+        <span>Space <em>push to talk</em></span>
+        <span>Esc <em>interrupt</em></span>
+        <span class="footer-note">Built for truthful local evaluation before provider activation.</span>
+      </footer>
+
+      <div class="permission-toast" id="permissionToast" role="status" aria-live="polite" hidden></div>
+    </main>
+    <script type="module" src="/voice/voice.js"></script>
+  </body>
+</html>

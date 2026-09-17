@@ -82,7 +82,8 @@ def test_root_serves_landing(live_server) -> None:
     resp = urllib.request.urlopen(live_server + "/", timeout=5)
     body = resp.read().decode("utf-8")
     assert resp.headers["content-type"].startswith("text/html")
-    assert "Starlight Voice" in body and "Launch the console" in body
+    assert "Starlight Voice" in body and "Open voice" in body
+    assert 'href="/voice/"' in body
 
 
 def test_console_and_shared_tokens_served(live_server) -> None:
@@ -91,6 +92,26 @@ def test_console_and_shared_tokens_served(live_server) -> None:
     tokens = urllib.request.urlopen(live_server + "/tokens.css", timeout=5)
     assert tokens.headers["content-type"].startswith("text/css")
     assert "--voltage" in tokens.read().decode("utf-8")  # the single source of truth
+
+
+def test_voice_experience_and_runtime_assets_served(live_server) -> None:
+    voice = urllib.request.urlopen(live_server + "/voice/", timeout=5)
+    body = voice.read().decode("utf-8")
+    assert voice.headers["content-type"].startswith("text/html")
+    assert "Starlight Voice" in body and "Start listening" in body
+    assert "Content-Security-Policy" in body
+    assert "fonts.googleapis.com" not in body
+
+    for asset in ("/voice/voice.css", "/voice/voice.js", "/voice/voice-runtime.mjs"):
+        response = urllib.request.urlopen(live_server + asset, timeout=5)
+        assert response.status == 200
+
+
+def test_voice_source_map_and_unlisted_assets_remain_fail_closed(live_server) -> None:
+    for path in ("/voice/voice.js.map", "/voice/private.json"):
+        with pytest.raises(urllib.error.HTTPError) as exc:
+            urllib.request.urlopen(live_server + path, timeout=5)
+        assert exc.value.code == 404
 
 
 @pytest.mark.parametrize("bad", ["/server.py", "/.git/config", "/sidecar/pyproject.toml", "/../site/tokens.css"])
