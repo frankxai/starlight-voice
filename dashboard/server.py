@@ -19,7 +19,7 @@ from __future__ import annotations
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
@@ -102,7 +102,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             return
 
         record = {
-            "recorded_at": datetime.now(timezone.utc).isoformat(),
+            "recorded_at": datetime.now(UTC).isoformat(),
             "source": "starlight-voice-dashboard",
             "payload": payload,
         }
