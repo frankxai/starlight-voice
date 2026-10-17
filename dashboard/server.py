@@ -20,7 +20,7 @@ from __future__ import annotations
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
@@ -51,6 +51,9 @@ STATIC: dict[str, tuple[Path, str]] = {
     "/voice/voice.css": (VOICE / "voice.css", _CT_CSS),
     "/voice/voice.js": (VOICE / "voice.js", _CT_JS),
     "/voice/voice-runtime.mjs": (VOICE / "voice-runtime.mjs", _CT_JS),
+    "/live": (DASH / "live.html", _CT_HTML),
+    "/live.html": (DASH / "live.html", _CT_HTML),
+    "/live.css": (DASH / "live.css", _CT_CSS),
 }
 
 
@@ -60,7 +63,7 @@ def _system_status() -> dict:
         from starlight_voice.status import system_status
 
         return system_status()
-    except Exception as e:  # noqa: BLE001 - console must render even if the sidecar is absent
+    except Exception:  # noqa: BLE001 - console must render even if the sidecar is absent
         return {
             "status": "STANDBY",
             "voice_loop": {"mode": "local-first", "first_audio_budget_ms": 606, "state": "standby"},
@@ -87,6 +90,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
             return
         if path == "/status":
             self._json(200, _system_status())
+            return
+        if path == "/api/live":
+            from starlight_voice.session_store import read_live
+
+            self._json(200, read_live())
+            return
+        if path == "/api/sessions":
+            from starlight_voice.session_store import read_sessions
+
+            self._json(200, {"sessions": read_sessions(20)})
             return
         entry = STATIC.get(path)
         if entry is None:
@@ -116,7 +129,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             return
 
         record = {
-            "recorded_at": datetime.now(timezone.utc).isoformat(),
+            "recorded_at": datetime.now(UTC).isoformat(),
             "source": "starlight-voice-dashboard",
             "payload": payload,
         }
